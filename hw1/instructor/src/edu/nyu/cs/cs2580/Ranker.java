@@ -4,6 +4,7 @@ import java.util.Vector;
 import java.util.Scanner;
 
 class Ranker {
+  // Test for github
   private Index _index;
 
   public Ranker(String index_source){
