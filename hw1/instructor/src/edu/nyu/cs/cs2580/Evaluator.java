@@ -98,25 +98,11 @@ class Evaluator {
           String grade = s.next();
           double rel = 0.0;
           // convert to binary relevance
-		  switch ( grade ) {
-			  case "Perfect":
-				  rel = 10.0;
-				  break;
-			  case "Excellent":
-				  rel = 7.0;
-				  break;
-			  case "Good":
-				  rel = 5.0;
-				  break;
-			  case "Fair":
-				  rel = 1.0;
-				  break;
-			  case "Bad":
-				  rel = 0.0;
-				  break;
-			  default:
-				  rel = 0.0;
-		  }
+		  if(grade.equals("Perfect")) rel = 10.0;
+		  else if(grade.equals("Excellent")) rel = 7.0;
+		  else if(grade.equals("Good")) rel = 5.0;
+		  else if(grade.equals("Fair")) rel = 1.0;
+		  else rel = 1.0;
           if (relevance_judgments.containsKey(query) == false){
             HashMap < Integer , Double > qr = new HashMap < Integer , Double >();
             relevance_judgments.put(query,qr);
