@@ -3,6 +3,7 @@ package edu.nyu.cs.cs2580;
 import java.util.Vector;
 import java.util.Scanner;
 import java.util.HashMap;
+import java.util.Collections;
 import java.lang.Math;
 
 class Ranker {
@@ -18,6 +19,7 @@ class Ranker {
     for (int i = 0; i < _index.numDocs(); ++i){
       retrieval_results.add(runquery(query, i, ranker_type));
     }
+    Collections.sort(retrieval_results);
     return retrieval_results;
   }
 
