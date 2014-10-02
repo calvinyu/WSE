@@ -20,7 +20,7 @@ import java.net.URLDecoder;
 class QueryHandler implements HttpHandler {
   /*private static String plainResponse =
       "Request received, but I am not smart enough to echo yet!\n";*/
-  private String resultFormat = null;
+  private String resultFormat = "not_specified";
   private Ranker _ranker;
   
   //Constructor
@@ -121,7 +121,7 @@ class QueryHandler implements HttpHandler {
       // Construct a simple response.
       Headers responseHeaders = exchange.getResponseHeaders();
       OutputStream responseBody = exchange.getResponseBody();
-      if(resultFormat.equals("text")||resultFormat==null){
+      if(resultFormat.equals("text")||resultFormat.equals("not_specified")){
         responseHeaders.set("Content-Type", "text/plain");
         exchange.sendResponseHeaders(200, 0);  // arbitrary number of bytes
         responseBody.write(queryResponse.getBytes());
