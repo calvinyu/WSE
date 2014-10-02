@@ -30,16 +30,15 @@ class QueryHandler implements HttpHandler {
 
   // Store attributes(keys) and values in a hash map
   public static Map<String, String> getQueryMap(String query){
-	System.out.println(query);
     String[] params = query.split("&");
     Map<String, String> map = new HashMap<String, String>();
     for (String param : params){
       String name = param.split("=")[0];
       String value = param.split("=")[1];
-      map.put(name, value);  
+      map.put(name, value);
     }
-    return map;  
-  } 
+    return map;
+  }
   
   // Implement the actual handling part
   public void handle(HttpExchange exchange) throws IOException {
@@ -74,24 +73,34 @@ class QueryHandler implements HttpHandler {
         if (keys.contains("query")){
           if (keys.contains("ranker")){
             String ranker_type = query_map.get("ranker");
-            // @CS2580: Invoke different ranking functions inside your
-            // implementation of the Ranker class.
+            Vector < ScoredDocument > sds = null;
             if (ranker_type.equals("cosine")){
-              queryResponse = (ranker_type + " not implemented.");
+                sds = _ranker.runquery(query_map.get("query"),"cosine");
             } else if (ranker_type.equals("QL")){
-              queryResponse = (ranker_type + " not implemented.");
+            	sds = _ranker.runquery(query_map.get("query"),"QL");
             } else if (ranker_type.equals("phrase")){
-              queryResponse = (ranker_type + " not implemented.");
+            	sds = _ranker.runquery(query_map.get("query"),"phrase");
             } else if (ranker_type.equals("linear")){
-              queryResponse = (ranker_type + " not implemented.");
+            	sds = _ranker.runquery(query_map.get("query"),"linear");
             } else {
-              queryResponse = (ranker_type+" not implemented.");
+              queryResponse = (ranker_type+" not implemented yet.");
+            }
+            // process the result from ranker and generate String
+            Iterator < ScoredDocument > itr = sds.iterator();
+            while (itr.hasNext()){
+              ScoredDocument sd = itr.next();
+              if (queryResponse.length() > 0){
+                queryResponse = queryResponse + "\n";
+              }
+              // Transfer a ScoredDocument into a String
+              queryResponse = queryResponse + query_map.get("query") + "\t" + sd.asString();
+            }
+            if (queryResponse.length() > 0){
+              queryResponse = queryResponse + "\n";
             }
           } else {
-            // @CS2580: The following is instructor's simple ranker that does not
-            // use the Ranker class. 
-        	// Queries without ranker attribute invoke this method.
-            Vector < ScoredDocument > sds = _ranker.runquery(query_map.get("query"));
+            // if no ranker type is specified, use Linear Model
+            Vector < ScoredDocument > sds = _ranker.runquery(query_map.get("query"),"default");
             Iterator < ScoredDocument > itr = sds.iterator();
             while (itr.hasNext()){
               ScoredDocument sd = itr.next();
@@ -120,7 +129,8 @@ class QueryHandler implements HttpHandler {
     	responseHeaders.set("Content-Type", "text/html");
     	exchange.sendResponseHeaders(200, 0);  // arbitrary number of bytes
     	String htmlContent = "<head><link rel=\"stylesheet\" href=\"css/style.css\"></head>"
-    	+"<p>Search result:<br></p>" + queryResponse + "<p id=\"backToSearch\">Back to Home</p>";
+    	+"<p>Search result:<br></p>" + queryResponse.replace("\n", "<br>")
+    	+ "<p id=\"backToSearch\">Back to Home</p>";
     	responseBody.write(htmlContent.getBytes());
       }
       responseBody.close();
