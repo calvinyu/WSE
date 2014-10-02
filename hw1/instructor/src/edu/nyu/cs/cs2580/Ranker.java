@@ -41,27 +41,21 @@ class Ranker {
     HashMap < String, Double > q_tfidf;
     HashMap < String, Double > lmprob;
     double score = 0.;
-    switch ( ranker_type ) {
-      case ( "cosine" ):
-        d_tfidf = createTfidf(bv);
-        q_tfidf = createTfidf(qv);
-        score = cosine_score(d_tfidf, q_tfidf);
-        break;
-      case ( "QL" ):
-        lmprob = createLmprob(bv, qv, 0.5);
-        score = language_model_score(qv, lmprob);
-        break;
-      case ( "phrase" ):
-        score = bigram_score(bv, qv);
-        break;
-      case ( "linear" ):
-      case ( "not specified" ):
-        d_tfidf = createTfidf(bv);
-        q_tfidf = createTfidf(qv);
-        lmprob = createLmprob(bv, qv, 0.5);
-        score = cosine_score(d_tfidf, q_tfidf) + language_model_score(qv, lmprob) +
-            bigram_score(bv, qv) + d.get_numviews();
-        break;
+    if (ranker_type == "cosine") {
+      d_tfidf = createTfidf(bv);
+      q_tfidf = createTfidf(qv);
+      score = cosine_score(d_tfidf, q_tfidf);
+    } else if (ranker_type.equals("QL")){
+      lmprob = createLmprob(bv, qv, 0.5);
+      score = language_model_score(qv, lmprob);
+    } else if (ranker_type.equals("phrase")) {
+      score = bigram_score(bv, qv);
+    } else {
+      d_tfidf = createTfidf(bv);
+      q_tfidf = createTfidf(qv);
+      lmprob = createLmprob(bv, qv, 0.5);
+      score = cosine_score(d_tfidf, q_tfidf) + language_model_score(qv, lmprob) +
+          bigram_score(bv, qv) + d.get_numviews();
     }
 
     return new ScoredDocument(did, d.get_title_string(), score);

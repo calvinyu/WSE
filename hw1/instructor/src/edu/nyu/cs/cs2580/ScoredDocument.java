@@ -15,7 +15,7 @@ class ScoredDocument implements Comparable {
   }
 
   public int compareTo(Object o) {
-    double diff = this._score - ((ScoredDocument) o)._score;
+    double diff = ((ScoredDocument) o)._score - this._score;
     if (diff > 0) { return 1; }
     else if (diff < 0) { return -1; }
     else { return 0; }
