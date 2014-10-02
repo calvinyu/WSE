@@ -13,18 +13,15 @@ class Ranker {
     _index = new Index(index_source);
   }
 
-  public Vector < ScoredDocument > runquery(String query){
+  public Vector < ScoredDocument > runquery(String query, String ranker_type){
     Vector < ScoredDocument > retrieval_results = new Vector < ScoredDocument > ();
     for (int i = 0; i < _index.numDocs(); ++i){
-      retrieval_results.add(runquery(query, i));
+      retrieval_results.add(runquery(query, i, ranker_type));
     }
     return retrieval_results;
   }
 
-  public ScoredDocument runquery(String query, int did){
-    // TODO This should be an argument of the method
-    String ranker_type = "QL";
-
+  public ScoredDocument runquery(String query, int did, String ranker_type){
     // Build query vector
     Scanner s = new Scanner(query);
     Vector < String > qv = new Vector < String > ();
@@ -36,33 +33,39 @@ class Ranker {
     // Get the document vector. For hw1, you don't have to worry about the
     // details of how index works.
     Document d = _index.getDoc(did);
-    Vector < String > dv = d.get_title_vector();
     Vector < String > bv = d.get_body_vector();
 
+    HashMap < String, Double > d_tfidf;
+    HashMap < String, Double > q_tfidf;
+    HashMap < String, Double > lmprob;
     double score = 0.;
-    if (ranker_type.equals("cosine")){
-      HashMap < String, Double > d_tfidf = createTfidf(bv);
-      HashMap < String, Double > q_tfidf = createTfidf(qv);
-      score = cosine_score(d_tfidf, q_tfidf);
-    } else if (ranker_type.equals("QL")) {
-      HashMap < String, Double > lmprob = createLmprob(bv, qv, 0.5);
-      score = language_model_score(qv, lmprob);
-    } else if (ranker_type.equals("phrase")){
-      score = bigram_score(bv, qv);
-    } else if (ranker_type.equals("linear") || ranker_type.equals("not specified")) {
-      HashMap < String, Double > d_tfidf = createTfidf(bv);
-      HashMap < String, Double > q_tfidf = createTfidf(qv);
-      HashMap < String, Double > lmprob = createLmprob(bv, qv, 0.5);
-      score = cosine_score(d_tfidf, q_tfidf) + language_model_score(qv, lmprob) +
-          bigram_score(bv, qv) + d.get_numviews();
-    } else {
-      System.out.println("Query type undefined.");
+    switch ( ranker_type ) {
+      case ( "cosine" ):
+        d_tfidf = createTfidf(bv);
+        q_tfidf = createTfidf(qv);
+        score = cosine_score(d_tfidf, q_tfidf);
+        break;
+      case ( "QL" ):
+        lmprob = createLmprob(bv, qv, 0.5);
+        score = language_model_score(qv, lmprob);
+        break;
+      case ( "phrase" ):
+        score = bigram_score(bv, qv);
+        break;
+      case ( "linear" ):
+      case ( "not specified" ):
+        d_tfidf = createTfidf(bv);
+        q_tfidf = createTfidf(qv);
+        lmprob = createLmprob(bv, qv, 0.5);
+        score = cosine_score(d_tfidf, q_tfidf) + language_model_score(qv, lmprob) +
+            bigram_score(bv, qv) + d.get_numviews();
+        break;
     }
 
     return new ScoredDocument(did, d.get_title_string(), score);
   }
   private HashMap <String, Double> createTfidf(Vector < String > v) {
-    HashMap < String, Double > tfidf = new HashMap < String, Double >();
+    HashMap < String, Double > tfidf = new HashMap <>();
     // Create term frequency map.
     for (String word : v) {
       if (!tfidf.containsKey(word)) tfidf.put(word, 0.);
@@ -89,19 +92,18 @@ class Ranker {
       if (!lmprob.containsKey(s)) lmprob.put(s, 0.);
       lmprob.put(s, lmprob.get(s) + 1.);
     }
-    // Create language model probability map
+    // Create language model probability map.
     for (String s : lmprob.keySet()) {
       lmprob.put(s, lmprob.get(s) / bv.size());
     }
-    // Add query words to language model probability map
+    // Add query words to language model probability map.
     for (String s : qv) {
       if (!lmprob.containsKey(s)) lmprob.put(s, 0.);
     }
-    // Smoothing
+    // Smoothing.
     for (String s : lmprob.keySet()) {
       lmprob.put(s, lamb * lmprob.get(s) + ((1. - lamb) * Document.termFrequency(s)) / Document.termFrequency());
     }
-
     return lmprob;
   }
 
@@ -121,9 +123,15 @@ class Ranker {
 
   private double bigram_score(Vector < String > bv, Vector < String > qv) {
     double qb_score = 0.;
-    for (int i = 0; i < qv.size() - 1; i++) {
-      for (int j = 0; j < bv.size() - 1; j++) {
-        if (qv.get(i).equals(bv.get(j)) && qv.get(i + 1).equals(bv.get(j + 1))) { qb_score += 1.; }
+    if (qv.size() == 1) {
+      for (String b : bv) {
+        if (qv.get(0).equals(b)) { qb_score += 1.; }
+      }
+    } else {
+      for (int i = 0; i < qv.size() - 1; i++) {
+        for (int j = 0; j < bv.size() - 1; j++) {
+          if (qv.get(i).equals(bv.get(j)) && qv.get(i + 1).equals(bv.get(j + 1))) { qb_score += 1.; }
+        }
       }
     }
     return qb_score;
