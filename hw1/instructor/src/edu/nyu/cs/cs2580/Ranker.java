@@ -61,7 +61,7 @@ class Ranker {
     return new ScoredDocument(did, d.get_title_string(), score);
   }
   private HashMap <String, Double> createTfidf(Vector < String > v) {
-    HashMap < String, Double > tfidf = new HashMap <>();
+    HashMap < String, Double > tfidf = new HashMap < String, Double >();
     // Create term frequency map.
     for (String word : v) {
       if (!tfidf.containsKey(word)) tfidf.put(word, 0.);
