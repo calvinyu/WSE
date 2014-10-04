@@ -61,12 +61,10 @@ class QueryHandler implements HttpHandler {
     PrintWriter out5 = new PrintWriter(file5);
     //read in queries from queries.tsv, run them and write to files
     Scanner sc = new Scanner(new File("./../data/queries.tsv"));
-    sc.useDelimiter("\n");
     int count_of_queries = 0;
-    while(sc.hasNext()){
-    	count_of_queries++;
-    	String que = sc.next();
-    	que = que.substring(0, que.length());
+    while(sc.hasNextLine()){
+      count_of_queries++;
+    	String que = sc.nextLine();
     	Vector < ScoredDocument > cos = _ranker.runquery(que,"cosine");
     	out1.print(ScoredDocumentToString(que, cos));
     	Vector < ScoredDocument > QL = _ranker.runquery(que,"QL");
