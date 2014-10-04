@@ -52,7 +52,7 @@ class Ranker {
       score = language_model_score(qv, lmprob);
     } else if (ranker_type.equals("phrase")) {
       score = bigram_score(bv, qv);
-    } else if (ranker_type.equals("views")) {
+    } else if (ranker_type.equals("numviews")) {
       score = d.get_numviews();
     } else {
       // Return linear score by default

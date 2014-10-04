@@ -71,8 +71,8 @@ class QueryHandler implements HttpHandler {
     	out2.print(ScoredDocumentToString(que, QL));
     	Vector < ScoredDocument > phr = _ranker.runquery(que,"phrase");
     	out3.print(ScoredDocumentToString(que, phr));
-    	Vector < ScoredDocument > views = _ranker.runquery(que,"views");
-    	out4.print(ScoredDocumentToString(que, views));
+    	Vector < ScoredDocument > numviews = _ranker.runquery(que,"numviews");
+    	out4.print(ScoredDocumentToString(que, numviews));
       Vector < ScoredDocument > lin = _ranker.runquery(que, "lin");
       out5.print(ScoredDocumentToString(que, lin));
     }
