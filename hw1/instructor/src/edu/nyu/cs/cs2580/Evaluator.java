@@ -33,18 +33,23 @@ class Evaluator {
     System.out.println(response);
 //generate evalutation files
     System.out.println("Evaluating...");
-    generateFiles(relevance_judgments);
+    //generateFiles(relevance_judgments);
   }
-
+  public static void evaluateAll(Ranker ranker) {
+    HashMap < String , HashMap < Integer , Double > > relevance_judgments =
+    new HashMap < String , HashMap < Integer , Double > >();
+    readRelevanceJudgments("../data/qrels.tsv", relevance_judgments);
+    generateFiles(relevance_judgments, ranker);
+  }
   public static void generateFiles(
-    HashMap <String, HashMap<Integer, Double> > relevance_judgments) {
+    HashMap <String, HashMap<Integer, Double> > relevance_judgments,
+    Ranker ranker) {
 //read queries from data/queries
     ArrayList< String > queries = new ArrayList < String > ();
     readFromFile("./../data/queries.tsv", queries);
 //rankers
     String[] ranker_types = {"vsm", "ql", "phrase", "numviews", "linear"};
-//initialize Ranker
-    Ranker ranker = new Ranker("./../data/corpus.tsv");
+
     for( String ranker_type : ranker_types ) {
 //get results from Ranker
       String evaluations = "";
@@ -95,7 +100,6 @@ class Evaluator {
     }catch (Exception e) {
       System.out.println("Error: " + e.getMessage());
     }
-    System.out.println(output.size() + "lines");
   }
 
   public static String getMetrics(List<Double> result) {  
@@ -246,6 +250,7 @@ class Evaluator {
       if(rel >= 5.0) R++;
     }
     recall = (double)RR / R;
+    if( R == 0 ) return 0;
     return recall;
   } 
 

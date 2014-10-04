@@ -78,6 +78,9 @@ class QueryHandler implements HttpHandler {
     }
 	out1.close(); out2.close(); out3.close(); out4.close(); out5.close(); sc.close();
     System.out.println("Done generating results for " + count_of_queries + " queries...");
+    System.out.println("Evaluating files ...");
+    Evaluator.evaluateAll(_ranker);
+    System.out.println("Done Evaluating Files!");
   }
   
   public static String ScoredDocumentToString(String query, Vector < ScoredDocument > sds){
