@@ -33,44 +33,52 @@ class QueryHandler implements HttpHandler {
     
     System.out.println("Generating results ...");
     //create corresponding files
-    File file1 = new File("data/hw1.1-vsm.tsv");
+    File file1 = new File("./../data/hw1.1-vsm.tsv");
     if(!file1.exists()){
     	file1.createNewFile();
     }
-    File file2 = new File("data/hw1.1-ql.tsv");
+    File file2 = new File("./../data/hw1.1-ql.tsv");
     if(!file2.exists()){
     	file2.createNewFile();
     }
-    File file3 = new File("data/hw1.1-phrase.tsv");
+    File file3 = new File("./../data/hw1.1-phrase.tsv");
     if(!file3.exists()){
     	file3.createNewFile();
     }
-    File file4 = new File("data/hw1.1-numviews.tsv");
+    File file4 = new File("./../data/hw1.1-numviews.tsv");
     if(!file4.exists()){
     	file4.createNewFile();
     }
+    File file5 = new File("./../data/hw1.2-linear.tsv");
+    if(!file5.exists()){
+      file5.createNewFile();
+    }
+
     PrintWriter out1 = new PrintWriter(file1);
     PrintWriter out2 = new PrintWriter(file2);
     PrintWriter out3 = new PrintWriter(file3);
     PrintWriter out4 = new PrintWriter(file4);
+    PrintWriter out5 = new PrintWriter(file5);
     //read in queries from queries.tsv, run them and write to files
-    Scanner sc = new Scanner(new File("data/queries.tsv"));
+    Scanner sc = new Scanner(new File("./../data/queries.tsv"));
     sc.useDelimiter("\n");
     int count_of_queries = 0;
     while(sc.hasNext()){
     	count_of_queries++;
     	String que = sc.next();
-    	que = que.substring(0, que.length()-1);
+    	que = que.substring(0, que.length());
     	Vector < ScoredDocument > cos = _ranker.runquery(que,"cosine");
     	out1.print(ScoredDocumentToString(que, cos));
     	Vector < ScoredDocument > QL = _ranker.runquery(que,"QL");
     	out2.print(ScoredDocumentToString(que, QL));
     	Vector < ScoredDocument > phr = _ranker.runquery(que,"phrase");
     	out3.print(ScoredDocumentToString(que, phr));
-    	Vector < ScoredDocument > lin = _ranker.runquery(que,"linear");
-    	out4.print(ScoredDocumentToString(que, lin));
+    	Vector < ScoredDocument > views = _ranker.runquery(que,"views");
+    	out4.print(ScoredDocumentToString(que, views));
+      Vector < ScoredDocument > lin = _ranker.runquery(que, "lin");
+      out5.print(ScoredDocumentToString(que, lin));
     }
-	out1.close(); out2.close(); out3.close(); out4.close(); sc.close();
+	out1.close(); out2.close(); out3.close(); out4.close(); out5.close(); sc.close();
     System.out.println("Done generating results for " + count_of_queries + " queries...");
   }
   
