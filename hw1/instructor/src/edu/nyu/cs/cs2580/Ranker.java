@@ -9,11 +9,13 @@ import java.lang.Math;
 class Ranker {
   // Test for github
   private Index _index;
+  private Double[] beta = {200., 0.05, 0.005, 0.000005};
 
   public Ranker(String index_source){
     _index = new Index(index_source);
   }
 
+  @SuppressWarnings("unchecked")
   public Vector < ScoredDocument > runquery(String query, String ranker_type){
     Vector < ScoredDocument > retrieval_results = new Vector < ScoredDocument > ();
     for (int i = 0; i < _index.numDocs(); ++i){
@@ -41,7 +43,7 @@ class Ranker {
     HashMap < String, Double > q_tfidf;
     HashMap < String, Double > lmprob;
     double score = 0.;
-    if (ranker_type == "cosine") {
+    if (ranker_type.equals("cosine")) {
       d_tfidf = createTfidf(bv);
       q_tfidf = createTfidf(qv);
       score = cosine_score(d_tfidf, q_tfidf);
@@ -50,12 +52,16 @@ class Ranker {
       score = language_model_score(qv, lmprob);
     } else if (ranker_type.equals("phrase")) {
       score = bigram_score(bv, qv);
+    } else if (ranker_type.equals("views")) {
+      score = d.get_numviews();
     } else {
+      // Return linear score by default
       d_tfidf = createTfidf(bv);
       q_tfidf = createTfidf(qv);
       lmprob = createLmprob(bv, qv, 0.5);
-      score = cosine_score(d_tfidf, q_tfidf) + language_model_score(qv, lmprob) +
-          bigram_score(bv, qv) + d.get_numviews();
+      score = beta[0] * cosine_score(d_tfidf, q_tfidf) +
+          beta[1] * language_model_score(qv, lmprob) +
+          beta[2] * bigram_score(bv, qv) + beta[3] * d.get_numviews();
     }
 
     return new ScoredDocument(did, d.get_title_string(), score);
