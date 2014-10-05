@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -16,6 +18,7 @@ import java.util.Set;
 import java.util.Iterator;
 import java.util.Vector;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 /**
  * 
@@ -30,7 +33,6 @@ class QueryHandler implements HttpHandler {
   //Constructor
   public QueryHandler(Ranker ranker) throws IOException{
     _ranker = ranker;
-    
     System.out.println("Generating results ...");
     //create corresponding files
     File file1 = new File("./../data/hw1.1-vsm.tsv");
@@ -99,6 +101,36 @@ class QueryHandler implements HttpHandler {
       }
       return queryResponse;
   }
+  
+  public static String ScoredDocumentToHTML(String query, Vector < ScoredDocument > sds){
+	  String queryResponse = "";
+	  Date dd = new Date();
+	  String sessionid = "S-"+String.valueOf(dd.getTime()).substring(5);
+	  Iterator < ScoredDocument > itr = sds.iterator();
+      while (itr.hasNext()){
+        ScoredDocument sd = itr.next();
+        if (queryResponse.length() > 0){
+          queryResponse = queryResponse + "\n";
+        }
+        // Transfer a ScoredDocument into a HTML element with hyperlink
+        String temp = sd.asString();
+        String docid = temp.substring(0, temp.indexOf("\t"));
+        String hyperlink1 = "sessionid=" + sessionid + "&action=click&query=" + query + "&docid=" + docid;
+        String hyperlink = "<a href=\"http://localhost:25813/log?" + hyperlink1
+        		+ "\" target=\"_blank\">";
+        queryResponse = queryResponse + hyperlink + query + "\t" + sd.asString() + "</a>";
+        // Log each result
+        try {
+			Logger.log(sessionid, query, docid, "render");
+		} catch (IOException e){
+			e.printStackTrace();
+		}
+      }
+      if (queryResponse.length() > 0){
+        queryResponse = queryResponse + "\n";
+      }
+      return queryResponse;
+  }
 
   // Store attributes(keys) and values in a hash map
   public static Map<String, String> getQueryMap(String query){
@@ -121,10 +153,10 @@ class QueryHandler implements HttpHandler {
 
     // Print the user request header.
     Headers requestHeaders = exchange.getRequestHeaders();
-    System.out.print("Incoming request: ");
-    for (String key : requestHeaders.keySet()){
-      System.out.print(key + ":" + requestHeaders.get(key) + "; ");
-    }
+    //System.out.print("Incoming request: ");
+    //for (String key : requestHeaders.keySet()){
+    //  System.out.print(key + ":" + requestHeaders.get(key) + "; ");
+    //}
     System.out.println();
     
     // Get query and path in the RequestURI and decode them
@@ -157,14 +189,27 @@ class QueryHandler implements HttpHandler {
             } else {
               queryResponse = (ranker_type+" not implemented yet.");
             }
-            // process the result from ranker and generate String
-            queryResponse = ScoredDocumentToString(query_map.get("query"), sds);
+            // process the result from ranker and generate corresponding format
+            if(resultFormat.equals("html")){
+            	queryResponse = ScoredDocumentToHTML(query_map.get("query"), sds);
+            } else queryResponse = ScoredDocumentToString(query_map.get("query"), sds);
           } else {
             // if no ranker type is specified, use Linear Model
             Vector < ScoredDocument > sds = _ranker.runquery(query_map.get("query"),"default");
-            queryResponse = ScoredDocumentToString(query_map.get("query"), sds);
+            if(resultFormat.equals("html")){
+            	queryResponse = ScoredDocumentToHTML(query_map.get("query"), sds);
+            } else queryResponse = ScoredDocumentToString(query_map.get("query"), sds);
           }
         }
+      }
+      else if (uriPath.equals("/log")){
+    	  Map<String, String> query_map = getQueryMap(uriQuery);
+    	  String query = query_map.get("query");
+    	  String docid = query_map.get("docid");
+    	  String sessionid = query_map.get("sessionid");
+    	  resultFormat = "text";
+    	  Logger.log(sessionid, query, docid, "click");
+    	  queryResponse = "Click logged!";
       }
     }
     
@@ -178,7 +223,7 @@ class QueryHandler implements HttpHandler {
     } else if(resultFormat.equals("html")){
       responseHeaders.set("Content-Type", "text/html");
       exchange.sendResponseHeaders(200, 0);  // arbitrary number of bytes
-      String htmlContent = "<head><link rel=\"stylesheet\" href=\"css/style.css\"></head>"
+      String htmlContent = "<head><script src=\"\"></script></head>"
       +"<p>Search result:<br></p>" + queryResponse.replace("\n", "<br>")
       + "<p id=\"backToSearch\">Back to Home</p>";
       responseBody.write(htmlContent.getBytes());
