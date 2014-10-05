@@ -9,7 +9,7 @@ import java.lang.Math;
 class Ranker {
   // Test for github
   private Index _index;
-  private Double[] beta = {2000., 0.05, 0.005, 0.000005};
+  private Double[] beta = {2., 0.1, 0.005, 0.000005};
 
   public Ranker(String index_source){
     _index = new Index(index_source);
@@ -82,7 +82,7 @@ class Ranker {
       l2 += tmp_tfidf * tmp_tfidf;
     }
     // L2-normalize the tfidf map.
-    for (String s : tfidf.keySet()) { tfidf.put(s, tfidf.get(s) / l2); }
+    for (String s : tfidf.keySet()) { tfidf.put(s, tfidf.get(s) / Math.sqrt(l2)); }
 
     return tfidf;
   }
