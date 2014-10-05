@@ -48,9 +48,11 @@ class Evaluator {
     ArrayList< String > queries = new ArrayList < String > ();
     readFromFile("./../data/queries.tsv", queries);
 //rankers
-    String[] ranker_types = {"vsm", "ql", "phrase", "numviews", "linear"};
+    String[] ranker_types = {"cosine", "QL", "phrase", "numviews", "linear"};
+    String[] ranker_types_for_file = {"vsm", "ql", "phrase", "numviews", "linear"};
 
-    for( String ranker_type : ranker_types ) {
+    for( int i=0; i<ranker_types.length; ++i){
+      String ranker_type = ranker_types[i];
 //get results from Ranker
       String evaluations = "";
       for( String query : queries ) {
@@ -67,7 +69,7 @@ class Evaluator {
         evaluations += getMetrics(result) + "\n";
       }
 //write to file
-      writeToFile("./../data/hw1.3-" + ranker_type + ".tsv", evaluations);
+      writeToFile("./../data/hw1.3-" + ranker_types_for_file[i] + ".tsv", evaluations);
 
     }
   }
@@ -151,7 +153,7 @@ class Evaluator {
     for(int i=1; i<K; ++i) {
       mdcg += optimalRelevanceOrder[K-i-1] / (Math.log(i+1) / Math.log(2));
     }
-
+    if(mdcg == 0 ) return 0;
     return dcg/mdcg;  
   }
 
@@ -206,7 +208,6 @@ class Evaluator {
 
   public static double evaluatePrecision(
     List < Double > result, int K){
-    double precision = 0.0;
     int RR = 0;
     for(int i = 0; i < K; ++i) {
       double rel = result.get(i);
@@ -214,11 +215,8 @@ class Evaluator {
         RR ++;
       }
     }
-    if( K != 0)
-      precision = (double)RR / K;
-    else
-      precision = 1.0;
-    return precision;
+    if( K == 0) return 0;
+    else return (double)RR / K;
   } 
 
   public static double getAveragePrecision(
@@ -232,14 +230,13 @@ class Evaluator {
         AP += (double)RR/(i+1);
       }
     }
-    AP /=  RR;
-    return AP;
+    if( RR == 0 ) return 0; 
+    return AP/RR;
   } 
 
 
   public static double evaluateRecall(
     List < Double > result, int K){
-    double recall = 0.0;
     int RR = 0;
     int R = 0;
     for(int i = 0; i < result.size(); ++i) {
@@ -249,9 +246,8 @@ class Evaluator {
       }
       if(rel >= 5.0) R++;
     }
-    recall = (double)RR / R;
     if( R == 0 ) return 0;
-    return recall;
+    else return (double)RR / R;
   } 
 
   public static double evaluateF(
@@ -270,8 +266,6 @@ class Evaluator {
       double r = evaluateRecall(result, i);
       PRGraph[i] = new PRPair(p, r);
     }
-
-
   }
 
   public static double getPrecisionAtRecall(PRPair[] PRGraph, double x) {
