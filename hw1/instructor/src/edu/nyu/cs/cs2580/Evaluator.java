@@ -271,7 +271,7 @@ class Evaluator {
   public static double getPrecisionAtRecall(PRPair[] PRGraph, double x) {
     if( x < 0 || x > 1) throw 
       new IllegalArgumentException("recall point should be between 0 and 1");
-    if( x == 0.0 ) return 1.0;
+    //if( x == 0.0 ) return 1.0;
     for(int i=1; i<PRGraph.length; ++i) {
       if(PRGraph[i].recall == x) 
         return PRGraph[i].precision;
