@@ -35,23 +35,27 @@ class QueryHandler implements HttpHandler {
     _ranker = ranker;
     System.out.println("Generating results ...");
     //create corresponding files
-    File file1 = new File("./../data/hw1.1-vsm.tsv");
+    File parent = new File("./../results");
+    if(!parent.exists()){
+      parent.mkdir();
+    }
+    File file1 = new File("./../results/hw1.1-vsm.tsv");
     if(!file1.exists()){
     	file1.createNewFile();
     }
-    File file2 = new File("./../data/hw1.1-ql.tsv");
+    File file2 = new File("./../results/hw1.1-ql.tsv");
     if(!file2.exists()){
     	file2.createNewFile();
     }
-    File file3 = new File("./../data/hw1.1-phrase.tsv");
+    File file3 = new File("./../results/hw1.1-phrase.tsv");
     if(!file3.exists()){
     	file3.createNewFile();
     }
-    File file4 = new File("./../data/hw1.1-numviews.tsv");
+    File file4 = new File("./../results/hw1.1-numviews.tsv");
     if(!file4.exists()){
     	file4.createNewFile();
     }
-    File file5 = new File("./../data/hw1.2-linear.tsv");
+    File file5 = new File("./../results/hw1.2-linear.tsv");
     if(!file5.exists()){
       file5.createNewFile();
     }

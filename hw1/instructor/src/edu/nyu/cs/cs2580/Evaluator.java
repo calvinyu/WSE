@@ -69,7 +69,7 @@ class Evaluator {
         evaluations += getMetrics(result) + "\n";
       }
 //write to file
-      writeToFile("./../data/hw1.3-" + ranker_types_for_file[i] + ".tsv", evaluations);
+      writeToFile("./../results/hw1.3-" + ranker_types_for_file[i] + ".tsv", evaluations);
 
     }
   }
