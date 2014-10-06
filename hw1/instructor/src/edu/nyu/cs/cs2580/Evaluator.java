@@ -271,19 +271,12 @@ class Evaluator {
   public static double getPrecisionAtRecall(PRPair[] PRGraph, double x) {
     if( x < 0 || x > 1) throw 
       new IllegalArgumentException("recall point should be between 0 and 1");
-    //if( x == 0.0 ) return 1.0;
-    for(int i=1; i<PRGraph.length; ++i) {
-      if(PRGraph[i].recall == x) 
-        return PRGraph[i].precision;
-      if(PRGraph[i-1].recall < x && PRGraph[i].recall > x) {
-        double rx = PRGraph[i-1].recall;
-        double ry = PRGraph[i].recall;
-        double px = PRGraph[i-1].precision;
-        double py = PRGraph[i].precision;
-        return ( px * (ry - x) + py * (x - rx) ) / (ry - rx);
-      } 
+    double max = PRGraph[PRGraph.length-1].precision;
+    for(int i=PRGraph.length-1; i>=0; --i) {
+      if(PRGraph[i].recall >= x) max = Math.max(max, PRGraph[i].precision);
+      
     }
-    return 0;
+    return max;
   }
 
   public static String parseStdin(
