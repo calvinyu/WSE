@@ -141,17 +141,17 @@ class Evaluator {
   }
 
   public static double evaluateNDCG(List <Double> result, int K) {
-    double[] optimalRelevanceOrder = new double[K];
+    ArrayList<Double> optimalRelevanceOrder = new ArrayList<Double>();
     double dcg = result.get(0);
-    optimalRelevanceOrder[0] = result.get(0);
+    optimalRelevanceOrder = (ArrayList)((ArrayList)result).clone();
     for(int i=1; i<K; ++i){
       dcg += result.get(i) / (Math.log(1+i) / Math.log(2));
-      optimalRelevanceOrder[i] = result.get(i);
     }
-    Arrays.sort(optimalRelevanceOrder);
-    double mdcg = optimalRelevanceOrder[K-1];
+    Collections.sort(optimalRelevanceOrder);
+    double mdcg = optimalRelevanceOrder.get(result.size()-1);
     for(int i=1; i<K; ++i) {
-      mdcg += optimalRelevanceOrder[K-i-1] / (Math.log(i+1) / Math.log(2));
+      mdcg += optimalRelevanceOrder.get(result.size()-i-1) 
+              / (Math.log(i+1) / Math.log(2));
     }
     if(mdcg == 0 ) return 0;
     return dcg/mdcg;  
@@ -175,7 +175,7 @@ class Evaluator {
           else if(grade.equals("Excellent")) rel = 7.0;
           else if(grade.equals("Good")) rel = 5.0;
           else if(grade.equals("Fair")) rel = 1.0;
-          else rel = 1.0;
+          else rel = 0.0;
           if (relevance_judgments.containsKey(query) == false){
             HashMap < Integer , Double > qr = new HashMap < Integer , Double >();
             relevance_judgments.put(query,qr);
