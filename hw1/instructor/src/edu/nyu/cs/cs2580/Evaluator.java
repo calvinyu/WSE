@@ -200,7 +200,7 @@ class Evaluator {
     for(int i = 0; i < result.size(); ++i) {
       double rel = result.get(i);
       if( rel >= 5.0 ){ 
-        return 1/(i+1);
+        return (double)1/(i+1);
       }
     }
     return 0.0;
