@@ -30,8 +30,8 @@ public class DocumentIndexed extends Document {
 
   // Set and get term frequencies for a document. This is used to compute the language model probs.
   public void setBodyTokens(Vector<Integer> bodyTokens) {
-    for (String q : _qv) {
-      _bodyFreqs.add(_indexer.documentTermFrequency(q, getUrl()));
+    for (String qw : _qv) {
+      _bodyFreqs.add(_indexer.documentTermFrequency(qw, getUrl()));
     }
   }
   public Vector<Integer> getBodyTokens() { return _bodyFreqs; }
