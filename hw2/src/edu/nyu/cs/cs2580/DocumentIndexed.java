@@ -8,7 +8,7 @@ import java.util.Vector;
  */
 public class DocumentIndexed extends Document {
   private static final long serialVersionUID = 9184892508124423115L;
-  private Indexer _indexer = null;
+  private static Indexer _indexer = null;
   private Vector<String> _qv = new Vector<String>(); // Not sure about the API.
 
   private Vector<Integer> _titleTokens = new Vector<Integer>();
@@ -21,8 +21,8 @@ public class DocumentIndexed extends Document {
   }
 
   // Get term frequencies in the corpus. These can be used for regularization.
-  public long getTotalTermFrequency() { return _indexer.totalTermFrequency(); }
-  public long getTermFrequency(String s) { return _indexer.corpusTermFrequency(s); }
+  public static long getTotalTermFrequency() { return _indexer.totalTermFrequency(); }
+  public static long getTermFrequency(String s) { return _indexer.corpusTermFrequency(s); }
 
   // Set and get title tokens.
   public void setTitleTokens(Vector<Integer> titleTokens) { _titleTokens = titleTokens; }
@@ -36,6 +36,4 @@ public class DocumentIndexed extends Document {
   }
   public Vector<Integer> getBodyTokens() { return _bodyFreqs; }
 
-  // Get length of the documents. This should be stored when indexing.
-  public int getDocLength(int did) { return 1; }
 }

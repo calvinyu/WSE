@@ -1,0 +1,11 @@
+1. Indexer
+  a. process html data
+  b. create doc only info (dic and inverted dic)
+  c. implement getter and setter( data structure for documents)
+  d. Compressed && Occurance
+
+2. Ranker 
+  a. calculate probability from DocumentIndexed
+
+3. DocumentIndexed and Query
+  a. 

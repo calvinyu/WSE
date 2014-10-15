@@ -48,20 +48,18 @@ public class RankerFavorite extends Ranker {
   private Vector <Double> createLmprob(Document d, Query query, double lamb) {
     DocumentIndexed doc = (DocumentIndexed) d;
     Vector < Double > lmprob = new Vector < Double >();
-    //shouldn't this be static? or why does it need docid?
-    int length = doc.getDocLength(doc._docid);
+    int length = doc.getDocLength();
     // Build query vector, it should support phrase query.
     Vector < Integer > bv = doc.getBodyTokens();
-    Iterator< Integer > bvit = bv.iterator();
-    Iterator< String > qit = query._tokens.iterator();
-    while ( bvit.hasNext() ) {
-      double score = bvit.next();
-      String s = qit.next();
+    Vector < String > qv = query._tokens;
+    for ( int i = 0; i < bv.size(); ++i ) {
+      double score = bv.get(i);
+      String s = qv.get(i);
       // Add query words to language model probability map.
       score /= length;
       // Smoothing.
-      long tf = doc.getTermFrequency(s);
-      long totalTf = doc.getTotalTermFrequency();
+      long tf = DocumentIndexed.getTermFrequency(s);
+      long totalTf = DocumentIndexed.getTotalTermFrequency();
       score = lamb * score + (1 - lamb) * ( tf / totalTf );
       lmprob.add(score);
     }
