@@ -4,7 +4,6 @@ import java.util.Vector;
 
 import edu.nyu.cs.cs2580.QueryHandler.CgiArguments;
 import edu.nyu.cs.cs2580.SearchEngine.Options;
-import java.util.*;
 
 /**
  * @CS2580: Implement this class for HW2 based on a refactoring of your favorite
@@ -14,16 +13,12 @@ import java.util.*;
  */
 public class RankerFavorite extends Ranker {
 
-  private Double[] beta = {2., 0.1, 0.005, 0.000005};
-
   public RankerFavorite(Options options,
       CgiArguments arguments, Indexer indexer) {
     super(options, arguments, indexer);
-
     System.out.println("Using Ranker: " + this.getClass().getSimpleName());
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public Vector<ScoredDocument> runQuery(Query query, int numResults) {
     Vector < ScoredDocument > retrieval_results = new Vector < ScoredDocument > ();
