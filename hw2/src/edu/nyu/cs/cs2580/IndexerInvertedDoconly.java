@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -153,7 +154,19 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
    * In HW2, you should be using {@link DocumentIndexed}
    */
   @Override
-  public DocumentIndexed nextDoc(Query query, int docid) { return null; }
+  public DocumentIndexed nextDoc(Query query, int docid) {
+    Vector<Integer> nextList = new Vector<Integer>();
+    for (String word : query._tokens) {
+      int nextPos = next(word, docid);
+      if (nextPos == Integer.MAX_VALUE) { return null; }
+      else nextList.add(nextPos);
+    }
+    int maxPos = Collections.max(nextList);
+    if (maxPos == Collections.min(nextList)) {
+      return getDoc(nextList.get(0));
+    }
+    return nextDoc(query, maxPos - 1);
+  }
 
   private int next(String word, int docid) {
     if (!_dictionary.containsKey(word)) { return Integer.MAX_VALUE; }
