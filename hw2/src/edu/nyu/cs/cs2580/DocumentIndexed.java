@@ -11,6 +11,7 @@ public class DocumentIndexed extends Document {
   private static final long serialVersionUID = 9184892508124423115L;
   private Indexer _indexer;
   private HashMap< Integer, Vector<Integer>> _body = new HashMap< Integer, Vector<Integer>>();
+  private Vector<Integer> _freqList = new Vector<Integer>();
   private int _length = 0;
 
   // constructor.
@@ -31,6 +32,8 @@ public class DocumentIndexed extends Document {
   public void setLength(Vector<Integer> doc) {
     _length = doc.size();
   }
+  // set termFrequency.
+  public void setTermFrequencyList(Vector<Integer> freqList) { _freqList = freqList; }
   // get term frequency.
   public int getTermFrequency(int i) {
     return _body.get(i).size();
