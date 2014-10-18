@@ -171,7 +171,7 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
   private int next(String word, int docid) {
     if (!_dictionary.containsKey(word)) { return Integer.MAX_VALUE; }
     Vector<Integer> docList = _postingLists.get(_dictionary.get(word));
-    if (docList.get(docList.size() - 1) < docid) { return Integer.MAX_VALUE; }
+    if (docList.get(docList.size() - 1) <= docid) { return Integer.MAX_VALUE; }
     if (docList.get(0) > docid) { return docList.get(0); }
     return docList.get(binarySearch(docList, 0, docList.size(), docid));
   }
@@ -179,10 +179,10 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
   private int binarySearch(Vector<Integer> docList, int low, int high, int docid) {
     while (high - low > 1) {
       int mid = (high - low) / 2;
-      if (docList.get(mid) <= docid) { low = mid; }
+      if (docList.get(mid) < docid) { low = mid; }
       else { high = mid; }
     }
-    return low;
+    return high;
   }
 
   @Override
@@ -199,9 +199,5 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
   public int documentTermFrequency(String term, String url) {
     SearchEngine.Check(false, "Not implemented!");
     return 0;
-  }
-
-  public static int getIndexByString(String s){
-    return _dictionary.get(s);
   }
 }

@@ -100,10 +100,10 @@ public class IndexerInvertedOccurrence extends Indexer {
   }
 
   private int next(String word, int docid) {
-    if (!_dictionary.containsKey(word)) { return Integer.MAX_VALUE; }
+    if (!_dictionary.containsKey(word)) return Integer.MAX_VALUE;
     Vector<Vector<Pair<Integer, Integer>>> docList = _postingLists.get(_dictionary.get(word));
-    if (docList.get(docList.size() - 1).get(0).getKey() < docid) { return Integer.MAX_VALUE; }
-    if (docList.get(0).get(0).getKey() > docid) { return Integer.MAX_VALUE; }
+    if (docList.get(docList.size() - 1).get(0).getKey() <= docid) return Integer.MAX_VALUE;
+    if (docList.get(0).get(0).getKey() > docid) return 0;
     // Returns the index for the docid. This is different from next() in IndexInvertedDocOnly.
     return binarySearch(docList, 0, docList.get(docList.size() - 1).get(0).getKey(), docid);
   }
@@ -111,14 +111,14 @@ public class IndexerInvertedOccurrence extends Indexer {
   private int binarySearch(Vector<Vector<Pair<Integer, Integer>>> docList, int low, int high, int docid) {
     while (high - low > 1) {
       int mid = (high - low) / 2;
-      if (docList.get(mid).get(0).getKey() <= docid) { low = mid; }
+      if (docList.get(mid).get(0).getKey() < docid) { low = mid; }
       else { high = mid; }
     }
-    return low;
+    return high;
   }
 
   private int nextPos(Vector<Pair<Integer, Integer>> posList, int pos) {
-    if (posList.get(posList.size() - 1).getValue() < pos) { return Integer.MAX_VALUE; }
+    if (posList.get(posList.size() - 1).getValue() <= pos) { return Integer.MAX_VALUE; }
     if (posList.get(0).getValue() > pos) { return Integer.MAX_VALUE; }
     return posList.get(binarySearchPos(posList, 0, posList.get(0).getValue(), pos)).getValue();
   }
@@ -126,10 +126,10 @@ public class IndexerInvertedOccurrence extends Indexer {
   private int binarySearchPos(Vector<Pair<Integer, Integer>> posList, int low, int high, int pos) {
     while (high - low > 1) {
       int mid = (high - low) / 2;
-      if (posList.get(mid).getValue() <= pos) { low = mid; }
+      if (posList.get(mid).getValue() < pos) { low = mid; }
       else { high = mid; }
     }
-    return low;
+    return high;
   }
 
   @Override

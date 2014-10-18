@@ -12,6 +12,7 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
  * @CS2580: Implement this class for HW2.
  */
 public class IndexerInvertedCompressed extends Indexer {
+  private int SKIPSIZE = 10;
   private HashMap<String, Integer> _dictionary = new HashMap<String, Integer>();
   private Vector<String> _terms = new Vector<String>();
   private Vector<Vector<Vector<Pair<Integer, Integer>>>> uncompressedList =
@@ -50,17 +51,11 @@ public class IndexerInvertedCompressed extends Indexer {
     for (String token : query._tokens) {
       String[] words = token.split(" ");
       for (String word : words) {
-        if (!_dictionary.containsKey(word)) return null;
         if (words.length > 1) phrases.add(token);
-        int nextIdx = next(word, docid);
-        if (nextIdx == Integer.MAX_VALUE) return null;
-        Vector<Pair<Integer, Integer>> skipPointer = _skipLists.get(_dictionary.get(word));
-        nextList.add(skipPointer.get(nextIdx).getKey());
-        int startPos = skipPointer.get(nextIdx).getValue();
-        int endPos;
-        if (nextIdx != skipPointer.size() - 1) endPos = skipPointer.get(nextIdx + 1).getValue();
-        else endPos = _postingLists.get(_dictionary.get(word)).size();
-        freqList.add(decodePosList(_postingLists.get(_dictionary.get(word)), startPos, endPos).size());
+        Pair<Integer, Vector<Integer>> idPosList = nextPosList(word, docid);
+        if (idPosList == null) return null;
+        nextList.add(idPosList.getKey());
+        freqList.add(idPosList.getValue().size());
       }
     }
     int maxId = Collections.max(nextList);
@@ -80,7 +75,7 @@ public class IndexerInvertedCompressed extends Indexer {
   private boolean phraseSearch(String phrase, int docid) {
     Vector<Vector<Integer>> phraseList = new Vector<Vector<Integer>>();
     for (String word : phrase.split(" ")) {
-      phraseList.add(nextPosList(word, docid - 1));
+      phraseList.add(nextPosList(word, docid - 1).getValue());
     }
     int prevPos = -1;
     int pos = -1;
@@ -102,39 +97,29 @@ public class IndexerInvertedCompressed extends Indexer {
     return false;
   }
 
-  private Vector<Integer> nextPosList(String word, int docid) {
+  private Pair<Integer, Vector<Integer>> nextPosList(String word, int docid) {
     if (!_dictionary.containsKey(word)) return null;
-    int nextIdx = next(word, docid);
-    if (nextIdx == Integer.MAX_VALUE) return null;
     Vector<Pair<Integer, Integer>> docList = _skipLists.get(_dictionary.get(word));
-    Vector<Byte> input = _postingLists.get(_dictionary.get(word));
-    int startPos = docList.get(nextIdx).getValue();
-    int endPos;
-    if (nextIdx != docList.size() - 1) endPos = docList.get(nextIdx + 1).getValue();
-    else endPos = input.size();
-    return decodePosList(input, startPos, endPos);
-  }
-
-  private int next(String word, int docid) {
-    if (!_dictionary.containsKey(word)) return Integer.MAX_VALUE;
-    Vector<Pair<Integer, Integer>> docList = _skipLists.get(_dictionary.get(word));
-    if (docList.get(docList.size() - 1).getKey() < docid) return Integer.MAX_VALUE;
-    if (docList.get(0).getKey() > docid) return Integer.MAX_VALUE;
+    if (docList.get(docList.size() - 1).getKey() <= docid) return null;
+    if (docList.get(0).getKey() > docid) {
+      return decodePosList(_postingLists.get(_dictionary.get(word)), 0, docid);
+    }
     // Returns the index of the skip pointer.
-    return binarySearch(docList, 0, docList.get(docList.size() - 1).getKey(), docid);
+    int startPos = binarySearch(docList, 0, docList.get(docList.size() - 1).getKey(), docid);
+    return decodePosList(_postingLists.get(_dictionary.get(word)), startPos, docid);
   }
 
   private int binarySearch(Vector<Pair<Integer, Integer>> docList, int low, int high, int docid) {
     while (high - low > 1) {
       int mid = (high - low) / 2;
-      if (docList.get(mid).getKey() <= docid) { low = mid; }
+      if (docList.get(mid).getKey() < docid) { low = mid; }
       else { high = mid; }
     }
     return low;
   }
 
   private int nextPos(Vector<Integer> posList, int pos) {
-    if (posList.get(posList.size() - 1) < pos) return Integer.MAX_VALUE;
+    if (posList.get(posList.size() - 1) <= pos) return Integer.MAX_VALUE;
     if (posList.get(0) > pos) return Integer.MAX_VALUE;
     return posList.get(binarySearchPos(posList, 0, posList.get(0), pos));
   }
@@ -142,10 +127,10 @@ public class IndexerInvertedCompressed extends Indexer {
   private int binarySearchPos(Vector<Integer> posList, int low, int high, int pos) {
     while (high - low > 1) {
       int mid = (high - low) / 2;
-      if (posList.get(mid) <= pos) { low = mid; }
+      if (posList.get(mid) < pos) { low = mid; }
       else { high = mid; }
     }
-    return low;
+    return high;
   }
 
   @Override
@@ -170,15 +155,24 @@ public class IndexerInvertedCompressed extends Indexer {
                                      Vector<Pair<Integer, Integer>> skipPointer) {
     Vector<Integer> output = new Vector<Integer>();
     int pointer = 0;
+    int prevId = 0;
+    int counter = 0;
     for (int i = 0; i < docList.size(); i++) {
       Vector<Pair<Integer, Integer>> posList = docList.get(i);
-      skipPointer.add(new Pair<Integer, Integer>(posList.get(0).getKey(), pointer));
+      int currentId = posList.get(0).getKey();
+      output.add(currentId - prevId);
+      prevId = currentId;
+      output.add(posList.size());
+      if (counter % SKIPSIZE == 0) {
+        skipPointer.add(new Pair<Integer, Integer>(currentId, pointer));
+      }
       int prevPos = 0;
       for (Pair<Integer, Integer> pos : posList) {
         output.add(pos.getValue() - prevPos);
         prevPos = pos.getValue();
       }
-      pointer += posList.size();
+      pointer += 2 + posList.size();
+      counter++;
     }
     return encode(output);
   }
@@ -195,21 +189,39 @@ public class IndexerInvertedCompressed extends Indexer {
     return output;
   }
 
-  private Vector<Integer> decodePosList(Vector<Byte> input, int startPos, int endPos) {
-    Vector<Integer> posList = new Vector<Integer>();
-    int prev = 0;
-    for (int i = startPos; i < endPos; i++) {
-      int pos = 0;
-      int result = ((int) input.get(i) & 0x7F);
-      while (((int) input.get(i) & 0x80) == 0) {
-        i += 1;
-        pos += 1;
-        int unsignedByte = (int) input.get(i) & 0x7F;
-        result |= (unsignedByte << (7 * pos));
-      }
-      prev += result;
-      posList.add(prev);
+  private int[] decode(Vector<Byte> input, int startPos) {
+    int i = startPos;
+    int result = ((int) input.get(i) & 0x7F);
+    while (((int) input.get(i) & 0x80) == 0) {
+      i += 1;
+      int unsignedByte = (int) input.get(i) & 0x7F;
+      result |= (unsignedByte << (7 * (i - startPos)));
     }
-    return posList;
+    int[] posResult = {i + 1, result};
+    return posResult;
+  }
+
+  private Pair<Integer, Vector<Integer>> decodePosList(Vector<Byte> input, int startPos, int docid) {
+    Vector<Integer> posList = new Vector<Integer>();
+    int pos = startPos;
+    while (decode(input, pos)[1] <= docid) {
+      int[] posId = decode(input, pos);
+      int[] posSize = decode(input, posId[0]);
+      pos = posSize[0];
+      for (int i = 0; i < posSize[1]; i++) {
+        int[] posPos = decode(input, pos);
+        pos = posPos[0];
+      }
+    }
+    int[] posId = decode(input, pos);
+    int[] posSize = decode(input, posId[0]);
+    int[] prevPos = {posSize[0], 0};
+    for (int i = 0; i < posSize[1]; i++) {
+      int[] posPos = decode(input, prevPos[0]);
+      prevPos[0] = posPos[0];
+      prevPos[1] = posPos[1] + prevPos[1];
+      posList.add(prevPos[1]);
+    }
+    return new Pair<Integer, Vector<Integer>>(posId[1], posList);
   }
 }
