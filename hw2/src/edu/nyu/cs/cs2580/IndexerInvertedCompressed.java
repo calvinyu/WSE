@@ -197,6 +197,7 @@ public class IndexerInvertedCompressed extends Indexer {
 
   private Vector<Integer> decodePosList(Vector<Byte> input, int startPos, int endPos) {
     Vector<Integer> posList = new Vector<Integer>();
+    int prev = 0;
     for (int i = startPos; i < endPos; i++) {
       int pos = 0;
       int result = ((int) input.get(i) & 0x7F);
@@ -206,7 +207,8 @@ public class IndexerInvertedCompressed extends Indexer {
         int unsignedByte = (int) input.get(i) & 0x7F;
         result |= (unsignedByte << (7 * pos));
       }
-      posList.add(result);
+      prev += result;
+      posList.add(prev);
     }
     return posList;
   }
