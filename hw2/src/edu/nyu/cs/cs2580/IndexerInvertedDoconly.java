@@ -200,4 +200,8 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
     SearchEngine.Check(false, "Not implemented!");
     return 0;
   }
+
+  public static int getIndexByString(String s){
+    return _dictionary.get(s);
+  }
 }

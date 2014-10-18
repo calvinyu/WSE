@@ -1,6 +1,6 @@
 package edu.nyu.cs.cs2580;
 
-import java.util.Vector;
+import java.util.*;
 
 import edu.nyu.cs.cs2580.QueryHandler.CgiArguments;
 import edu.nyu.cs.cs2580.SearchEngine.Options;
@@ -23,7 +23,7 @@ public class RankerFavorite extends Ranker {
   public Vector<ScoredDocument> runQuery(Query query, int numResults) {
     Vector < ScoredDocument > retrieval_results = new Vector < ScoredDocument > ();
     //retrieve relavant docs
-    Document nextDoc = _indexer.nextDoc(query, -1);// not sure abou api
+    Document nextDoc = _indexer.nextDoc(query, -1);// not sure about api
     while(nextDoc != null){
       retrieval_results.add(runquery(query, nextDoc));
       nextDoc = _indexer.nextDoc(query, nextDoc._docid);
@@ -33,34 +33,42 @@ public class RankerFavorite extends Ranker {
   }
 
   public ScoredDocument runquery(Query query, Document doc){
-    Vector < Double > lmprob;
-    double score = 0.;
-    lmprob = createLmprob(doc, query, 0.5);
-    score = language_model_score(lmprob);
+    Vector<Double> lmprob = new Vector<Double>();
+    createLmprob(doc, query, 0.5, lmprob);
+    double score = language_model_score(lmprob);
     return new ScoredDocument(doc, score);
   }
 
-  private Vector <Double> createLmprob(Document d, Query query, double lamb) {
+  private void createLmprob(Document d, Query query,
+   double lamb, Vector<Double> lmprob) {
     DocumentIndexed doc = (DocumentIndexed) d;
-    Vector < Double > lmprob = new Vector < Double >();
-    int length = doc.getDocLength();
+    int length = doc.getLength();
+    //HashMap< Integer, Vector<Integer>> body = doc._body;
     // Build query vector, it should support phrase query.
-    Vector < Integer > bv = doc.getBodyTokens();
+    //Vector < Integer > bv = doc.getBodyTokens();
     Vector < String > qv = query._tokens;
-    for ( int i = 0; i < bv.size(); ++i ) {
-      double score = bv.get(i);
-      String s = qv.get(i);
+    HashMap <Integer, Integer> qmap = countFrequency(qv);
+    for(int index: qmap.keySet()){
+      double score = doc.getTermFrequency(index);
       // Add query words to language model probability map.
       score /= length;
       // Smoothing.
       long tf = DocumentIndexed.getTermFrequency(s);
-      long totalTf = DocumentIndexed.getTotalTermFrequency();
+      long totalTf = IndexerInvertedDoconly.corpusTermFrequency();
       score = lamb * score + (1 - lamb) * ( tf / totalTf );
       lmprob.add(score);
     }
-    return lmprob;
   }
-
+  private HashMap<Integer, Integer> countFrequency(Vector<String> vs){
+    HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
+    for(String s: vs){
+      int index = IndexerInvertedDoconly.getIndexByString(s);
+      if(!map.conatinsKey(index)){
+        map.put(index, 0);
+      }
+      map.put(index, map.get(index)++);
+    }
+  }
   private double language_model_score(Vector < Double > lmprob) {
     double lm_score = 0.;
     for (Double score : lmprob) { lm_score += Math.log(score); }

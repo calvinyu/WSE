@@ -12,7 +12,6 @@ public class DocumentIndexed extends Document {
   private Indexer _indexer;
   private HashMap< Integer, Vector<Integer>> _body = new HashMap< Integer, Vector<Integer>>();
   private Vector<Integer> _freqList = new Vector<Integer>();
-  private int _length = 0;
 
   // constructor.
   public DocumentIndexed(int docid, Indexer indexer) {
@@ -24,13 +23,13 @@ public class DocumentIndexed extends Document {
   public void setBody(Vector<Integer> doc) {
     for (int i = 0; i < doc.size(); i++) {
       int ind = doc.get(i);
-      if (_body.containsKey(ind)) {_body.put(ind, new Vector<Integer>()); }
+      if (!_body.containsKey(ind)) {_body.put(ind, new Vector<Integer>()); }
       _body.get(ind).add(i);
     }
   }
   // set document length (to compute language model probabilities).
   public void setLength(Vector<Integer> doc) {
-    _length = doc.size();
+    length = doc.size();
   }
   // set termFrequency.
   public void setTermFrequencyList(Vector<Integer> freqList) { _freqList = freqList; }
@@ -41,9 +40,5 @@ public class DocumentIndexed extends Document {
   // get term positions (for phrases).
   public Vector<Integer> getTermPositions(int i) {
     return _body.get(i);
-  }
-  // get document length.
-  public int getLength() {
-    return _length;
   }
 }
