@@ -52,27 +52,26 @@ public class IndexerInvertedOccurrence extends Indexer {
       for (String word : words) {
         if (!_dictionary.containsKey(word)) return null;
         if (words.length > 1) phrases.add(token);
-        int nextPos = next(word, docid);
-        if (nextPos == Integer.MAX_VALUE) {
-          return null;
-        } else {
-          nextList.add(_postingLists.get(_dictionary.get(word)).get(nextPos).get(0).getKey());
-          freqList.add(_postingLists.get(_dictionary.get(word)).get(nextPos).size());
+        int nextIdx = next(word, docid);
+        if (nextIdx == Integer.MAX_VALUE) return null;
+        else {
+          nextList.add(_postingLists.get(_dictionary.get(word)).get(nextIdx).get(0).getKey());
+          freqList.add(_postingLists.get(_dictionary.get(word)).get(nextIdx).size());
         }
       }
     }
-    int maxPos = Collections.max(nextList);
-    if (maxPos == Collections.min(nextList)) {
+    int maxId = Collections.max(nextList);
+    if (maxId == Collections.min(nextList)) {
       // check if the document contains the phrases
       for (String phrase : phrases) {
-        if (!phraseSearch(phrase, maxPos)) return nextDoc(query, maxPos - 1);
+        if (!phraseSearch(phrase, maxId)) return nextDoc(query, maxId - 1);
       }
       // query is satisfied!!!
-      DocumentIndexed doc = (DocumentIndexed) getDoc(maxPos);
+      DocumentIndexed doc = (DocumentIndexed) getDoc(maxId);
       doc.setTermFrequencyList(freqList);
       return doc;
     }
-    return nextDoc(query, maxPos - 1);
+    return nextDoc(query, maxId - 1);
   }
 
   private boolean phraseSearch(String phrase, int docid) {
@@ -120,7 +119,7 @@ public class IndexerInvertedOccurrence extends Indexer {
 
   private int nextPos(Vector<Pair<Integer, Integer>> posList, int pos) {
     if (posList.get(posList.size() - 1).getValue() < pos) { return Integer.MAX_VALUE; }
-    if (posList.get(0).getKey() > pos) { return Integer.MAX_VALUE; }
+    if (posList.get(0).getValue() > pos) { return Integer.MAX_VALUE; }
     return posList.get(binarySearchPos(posList, 0, posList.get(0).getValue(), pos)).getValue();
   }
 
