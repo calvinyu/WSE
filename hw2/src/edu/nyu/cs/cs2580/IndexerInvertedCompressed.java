@@ -88,7 +88,6 @@ public class IndexerInvertedCompressed extends Indexer {
 	  updateStatistics(content, uniqueTerms, termVector);
 
 	  doc.setTitle(file.getName());
-	  doc.setBody(termVector);
 	  doc.setLength(termVector);
 	  _documents.add(doc);
 	  ++_numDocs;
