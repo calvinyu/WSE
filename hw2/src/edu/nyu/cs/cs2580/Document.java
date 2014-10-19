@@ -18,7 +18,7 @@ class Document implements Serializable {
   private static final long serialVersionUID = -539495106357836976L;
 
   public int _docid;
-  private int length;
+  protected int length;
 
   // Basic information for display
   private String _title = "";

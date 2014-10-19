@@ -13,10 +13,10 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
 import javafx.util.Pair;
+import org.jsoup.nodes.Document;
+import org.jsoup.Jsoup;
+
 import edu.nyu.cs.cs2580.SearchEngine.Options;
 
 /**
@@ -25,9 +25,9 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
 public class IndexerInvertedCompressed extends Indexer {
   private int SKIPSIZE = 10;
   
-  private HashMap<String, Integer> _dictionary = new HashMap<String, Integer>();
+  private static HashMap<String, Integer> _dictionary = new HashMap<String, Integer>();
   
-  private Vector<String> _terms = new Vector<String>();
+  private static Vector<String> _terms = new Vector<String>();
   
   private Vector<Vector<Vector<Pair<Integer, Integer>>>> _postingLists =
       new Vector<Vector<Vector<Pair<Integer, Integer>>>>();
@@ -79,7 +79,7 @@ public class IndexerInvertedCompressed extends Indexer {
 	  }
 
   private void processDocument(File file) throws IOException {
-	  Document DOM = Jsoup.parse(file, "UTF-8", "");
+	  Document DOM =  Jsoup.parse(file, "UTF-8", "");
 	  String content = DOM.select("#bodyContent").text();
 
 	  DocumentIndexed doc = new DocumentIndexed(_documents.size(), this);
@@ -354,5 +354,12 @@ public class IndexerInvertedCompressed extends Indexer {
       posList.add(prevPos[1]);
     }
     return new Pair<Integer, Vector<Integer>>(posId[1], posList);
+  }
+  
+  public static String getTermByIndex(int index){
+	  return _terms.get(index);
+  }
+  public static int getIndexByTerm(String s){
+	  return _dictionary.get(s);
   }
 }

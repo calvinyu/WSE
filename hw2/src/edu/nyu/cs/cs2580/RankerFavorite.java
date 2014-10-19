@@ -42,7 +42,7 @@ public class RankerFavorite extends Ranker {
   private void createLmprob(Document d, Query query,
    double lamb, Vector<Double> lmprob) {
     DocumentIndexed doc = (DocumentIndexed) d;
-    int length = doc.getLength();
+    int length = doc.getDocLength();
     //HashMap< Integer, Vector<Integer>> body = doc._body;
     // Build query vector, it should support phrase query.
     //Vector < Integer > bv = doc.getBodyTokens();
@@ -50,11 +50,12 @@ public class RankerFavorite extends Ranker {
     HashMap <Integer, Integer> qmap = countFrequency(qv);
     for(int index: qmap.keySet()){
       double score = doc.getTermFrequency(index);
+      String s = IndexerInvertedCompressed.getTermByIndex(index);
       // Add query words to language model probability map.
       score /= length;
       // Smoothing.
-      long tf = DocumentIndexed.getTermFrequency(s);
-      long totalTf = IndexerInvertedDoconly.corpusTermFrequency();
+      long tf = doc.getTermFrequency(index);
+      long totalTf = doc.totalTermFrequency();
       score = lamb * score + (1 - lamb) * ( tf / totalTf );
       lmprob.add(score);
     }
@@ -62,12 +63,13 @@ public class RankerFavorite extends Ranker {
   private HashMap<Integer, Integer> countFrequency(Vector<String> vs){
     HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
     for(String s: vs){
-      int index = IndexerInvertedDoconly.getIndexByString(s);
-      if(!map.conatinsKey(index)){
+      int index = IndexerInvertedCompressed.getIndexByTerm(s);
+      if(!map.containsKey(index)){
         map.put(index, 0);
       }
-      map.put(index, map.get(index)++);
+      map.put(index, map.get(index)+1);
     }
+    return map;
   }
   private double language_model_score(Vector < Double > lmprob) {
     double lm_score = 0.;

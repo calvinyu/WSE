@@ -41,4 +41,7 @@ public class DocumentIndexed extends Document {
   public Vector<Integer> getTermPositions(int i) {
     return _body.get(i);
   }
+  public long totalTermFrequency(){
+	  return _indexer.totalTermFrequency();
+  }
 }

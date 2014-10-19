@@ -34,9 +34,9 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
   private Vector<Vector<Integer>> _postingLists =
       new Vector<Vector<Integer>>();
 
-  private Map<Integer, Integer> _termDocFrequency = new HashMap<Integer, Integer>();
+  // private Map<Integer, Integer> _termDocFrequency = new HashMap<Integer, Integer>();
 
-  private Map<Integer, Integer> _termCorpusFrequency = new HashMap<Integer, Integer>();
+  // private Map<Integer, Integer> _termCorpusFrequency = new HashMap<Integer, Integer>();
 
   private Vector<DocumentIndexed> _documents = new Vector<DocumentIndexed>();
 
@@ -78,15 +78,15 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
     updateStatistics(content, uniqueTerms, termVector);
 
     doc.setTitle(file.getName());
-    doc.setBody(termVector);
-    doc.setLength(termVector);
+    // doc.setBody(termVector);
+    // doc.setLength(termVector);
     _documents.add(doc);
     ++_numDocs;
 
     //all words that appear in this doc,
-    for (Integer idx : uniqueTerms) {
-      _termDocFrequency.put(idx, _termDocFrequency.get(idx) + 1);
-    }
+    // for (Integer idx : uniqueTerms) {
+    //   _termDocFrequency.put(idx, _termDocFrequency.get(idx) + 1);
+    // }
   }
 
   private void updateStatistics(String content,
@@ -102,8 +102,8 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
         _terms.add(word);
         _postingLists.add(new Vector<Integer>());
         _dictionary.put(word, idx);
-        _termCorpusFrequency.put(idx, 0);
-        _termDocFrequency.put(idx, 0);
+        // _termCorpusFrequency.put(idx, 0);
+        // _termDocFrequency.put(idx, 0);
       }
       // check if the postingList already has this docid, if no then add.
       int docid = _documents.size();
@@ -112,9 +112,9 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
         temp.add(docid);
         _postingLists.set(idx, temp);
       }
-      uniqueTerms.add(idx);
-      termVector.add(idx);
-      _termCorpusFrequency.put(idx, _termCorpusFrequency.get(idx) + 1);
+      // uniqueTerms.add(idx);
+      // termVector.add(idx);
+      // _termCorpusFrequency.put(idx, _termCorpusFrequency.get(idx) + 1);
       ++_totalTermFrequency;
     }
   }
@@ -131,14 +131,17 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
     this._documents = loaded._documents;
     // Compute numDocs and totalTermFrequency b/c Indexer is not serializable.
     this._numDocs = _documents.size();
+    /*
     for (Integer freq : loaded._termCorpusFrequency.values()) {
       this._totalTermFrequency += freq;
-    }
+    }*/
     this._postingLists = loaded._postingLists;
     this._dictionary = loaded._dictionary;
     this._terms = loaded._terms;
+    /*
     this._termCorpusFrequency = loaded._termCorpusFrequency;
     this._termDocFrequency = loaded._termDocFrequency;
+    */
     reader.close();
 
     System.out.println(Integer.toString(_numDocs) + " documents loaded " +
@@ -192,7 +195,8 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
 
   @Override
   public int corpusTermFrequency(String term) {
-    return _termCorpusFrequency.get(_dictionary.get(term));
+    return 0;
+	  //return _termCorpusFrequency.get(_dictionary.get(term));
   }
 
   @Override
