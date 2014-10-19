@@ -1,11 +1,22 @@
 package edu.nyu.cs.cs2580;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.Vector;
-import javafx.util.Pair;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
+import javafx.util.Pair;
 import edu.nyu.cs.cs2580.SearchEngine.Options;
 
 /**
@@ -13,14 +24,26 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
  */
 public class IndexerInvertedCompressed extends Indexer {
   private int SKIPSIZE = 10;
+  
   private HashMap<String, Integer> _dictionary = new HashMap<String, Integer>();
+  
   private Vector<String> _terms = new Vector<String>();
-  private Vector<Vector<Vector<Pair<Integer, Integer>>>> uncompressedList =
+  
+  private Vector<Vector<Vector<Pair<Integer, Integer>>>> _postingLists =
       new Vector<Vector<Vector<Pair<Integer, Integer>>>>();
-  private Vector<Vector<Byte>> _postingLists = new Vector<Vector<Byte>>();
+  
+  private Vector<Vector<Byte>> _compressedPostingLists = new Vector<Vector<Byte>>();
+  
   private Vector<Vector<Pair<Integer, Integer>>> _skipLists =
       new Vector<Vector<Pair<Integer, Integer>>>();
+  
+  private Map<Integer, Integer> _termDocFrequency = new HashMap<Integer, Integer>();
 
+  private Map<Integer, Integer> _termCorpusFrequency = new HashMap<Integer, Integer>();
+
+  private Vector<DocumentIndexed> _documents = new Vector<DocumentIndexed>();
+  
+  
   public IndexerInvertedCompressed(Options options) {
     super(options);
     System.out.println("Using Indexer: " + this.getClass().getSimpleName());
@@ -28,22 +51,130 @@ public class IndexerInvertedCompressed extends Indexer {
 
   @Override
   public void constructIndex() throws IOException {
-  }
+	  String corpusFile = _options._corpusPrefix + "/wiki";
+	    System.out.println("Construct index from: " + corpusFile);
+	    File folder = new File(corpusFile);
+	    File[] listOfFiles = folder.listFiles();
+	    for(File file : listOfFiles){
+	      processDocument(file);
+	    }
 
+		//compress the postingList
+		for (int i=0; i<_postingLists.size()-1;i++){
+			_compressedPostingLists.set(i, encodePosList(_postingLists.get(i), _skipLists.get(i)));
+		}
+		//delete the postingList
+		_postingLists.clear();
+		
+	    System.out.println(
+	        "Indexed " + Integer.toString(_numDocs) + " docs with " +
+	            Long.toString(_totalTermFrequency) + " terms.");
+
+	    String indexFile = _options._indexPrefix + "/corpus.idx";
+	    System.out.println("Store index to: " + indexFile);
+	    ObjectOutputStream writer =
+	        new ObjectOutputStream(new FileOutputStream(indexFile));
+	    writer.writeObject(this);
+	    writer.close();
+	  }
+
+  private void processDocument(File file) throws IOException {
+	  Document DOM = Jsoup.parse(file, "UTF-8", "");
+	  String content = DOM.select("#bodyContent").text();
+
+	  DocumentIndexed doc = new DocumentIndexed(_documents.size(), this);
+	  HashSet<Integer> uniqueTerms = new HashSet<Integer>();
+	  Vector<Integer> termVector = new Vector<Integer>();
+	  updateStatistics(content, uniqueTerms, termVector);
+
+	  doc.setTitle(file.getName());
+	  doc.setBody(termVector);
+	  doc.setLength(termVector);
+	  _documents.add(doc);
+	  ++_numDocs;
+
+	  //all words that appear in this doc,
+	  for (Integer idx : uniqueTerms) {
+	    _termDocFrequency.put(idx, _termDocFrequency.get(idx) + 1);
+	  }
+	}
+
+  private void updateStatistics(String content, HashSet<Integer> uniqueTerms, Vector<Integer> termVector){
+	   Scanner s = new Scanner(content);  // Uses white space by default.
+	   int offset = 0;
+	   while (s.hasNext()) {
+	     String word = s.next();
+	     int idx = -1;
+	     if (_dictionary.containsKey(word)) {
+	       idx = _dictionary.get(word);
+	     } else {
+	     idx = _terms.size();
+	     _terms.add(word);
+	     _postingLists.add(new Vector<Vector<Pair<Integer, Integer>>>());
+	     _dictionary.put(word, idx);
+	     _termCorpusFrequency.put(idx, 0);
+	     _termDocFrequency.put(idx, 0);
+	     }
+	   // check if the postingList already has this docid, if no then add.
+	     int docid = _documents.size();
+	     
+	     // find the corresponding Vector of this index of term
+	     Vector<Vector<Pair<Integer, Integer>>> temp = _postingLists.get(idx);
+	     // if the docid has been inserted, get the vector, add the pair and then set back
+	     if(temp.get(temp.size()-1).get(0).getKey() == docid){
+	    	 Vector<Pair <Integer, Integer>> cur = temp.get(temp.size()-1);
+	    	 cur.add(new Pair<Integer, Integer>(docid, offset));
+	    	 temp.set(temp.size()-1, cur);
+	     } else { // if docid is new, create a vector of pair, add the pair in the vector, and add the vector
+	    	 Vector<Pair <Integer, Integer>> cur = new Vector<Pair <Integer, Integer>>();
+	    	 cur.add(new Pair<Integer, Integer>(docid, offset));
+	    	 temp.add(cur);
+	     }
+	     _postingLists.set(idx, temp);
+	     uniqueTerms.add(idx);
+	     termVector.add(idx);
+	     _termCorpusFrequency.put(idx, _termCorpusFrequency.get(idx) + 1);
+	     ++_totalTermFrequency;
+	     ++offset;
+	   }
+	  }
+  
   @Override
   public void loadIndex() throws IOException, ClassNotFoundException {
-  }
+	    String indexFile = _options._indexPrefix + "/corpus.idx";
+	    System.out.println("Load index from: " + indexFile);
+
+	    ObjectInputStream reader =
+	        new ObjectInputStream(new FileInputStream(indexFile));
+	    IndexerInvertedCompressed loaded = (IndexerInvertedCompressed) reader.readObject();
+
+	    this._documents = loaded._documents;
+	    // Compute numDocs and totalTermFrequency b/c Indexer is not serializable.
+	    this._numDocs = _documents.size();
+	    for (Integer freq : loaded._termCorpusFrequency.values()) {
+	      this._totalTermFrequency += freq;
+	    }
+	    this._postingLists = loaded._postingLists;
+	    this._dictionary = loaded._dictionary;
+	    this._terms = loaded._terms;
+	    this._termCorpusFrequency = loaded._termCorpusFrequency;
+	    this._termDocFrequency = loaded._termDocFrequency;
+	    reader.close();
+
+	    System.out.println(Integer.toString(_numDocs) + " documents loaded " +
+	        "with " + Long.toString(_totalTermFrequency) + " terms!");
+	  }
 
   @Override
-  public Document getDoc(int docid) {
-    return null;
+  public DocumentIndexed getDoc(int docid) {
+    return _documents.get(docid);
   }
 
   /**
    * In HW2, you should be using {@link DocumentIndexed}
    */
   @Override
-  public Document nextDoc(Query query, int docid) {
+  public DocumentIndexed nextDoc(Query query, int docid) {
     // Check if all the query words exist
     Vector<Integer> nextList = new Vector<Integer>();
     Vector<Integer> freqList = new Vector<Integer>();
@@ -102,11 +233,11 @@ public class IndexerInvertedCompressed extends Indexer {
     Vector<Pair<Integer, Integer>> docList = _skipLists.get(_dictionary.get(word));
     if (docList.get(docList.size() - 1).getKey() <= docid) return null;
     if (docList.get(0).getKey() > docid) {
-      return decodePosList(_postingLists.get(_dictionary.get(word)), 0, docid);
+      return decodePosList(_compressedPostingLists.get(_dictionary.get(word)), 0, docid);
     }
     // Returns the index of the skip pointer.
     int startPos = binarySearch(docList, 0, docList.get(docList.size() - 1).getKey(), docid);
-    return decodePosList(_postingLists.get(_dictionary.get(word)), startPos, docid);
+    return decodePosList(_compressedPostingLists.get(_dictionary.get(word)), startPos, docid);
   }
 
   private int binarySearch(Vector<Pair<Integer, Integer>> docList, int low, int high, int docid) {
