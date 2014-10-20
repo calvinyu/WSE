@@ -45,11 +45,13 @@ public class RankerFavorite extends Ranker {
     DocumentIndexed doc = (DocumentIndexed) d;
     int length = doc.getDocLength();
     Vector<Integer> freqlist = doc.getFreqList();
-    for(int freq: freqlist){
-      double score = freq/length;
+    for(int i=0; i<freqlist.size(); ++i){
+      double score = freqlist.get(i)/length;
+      String s = query._tokens.get(i);
+      int index = ((IndexerInvertedCompressed) _indexer).getIndexByTerm(s);
       // Smoothing.
-      long tf = 0;//TODO
-      long totalTf = doc.totalTermFrequency();
+      long tf = ((IndexerInvertedCompressed) _indexer).getTermCorpusFrequency(index);
+      long totalTf = ((IndexerInvertedCompressed) _indexer).totalTermFrequency();
       score = lamb * score + (1 - lamb) * ( tf / totalTf );
       lmprob.add(score);
     }

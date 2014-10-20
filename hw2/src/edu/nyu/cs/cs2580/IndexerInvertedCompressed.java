@@ -355,10 +355,15 @@ public class IndexerInvertedCompressed extends Indexer {
     return new Pair<Integer, Vector<Integer>>(posId[1], posList);
   }
   
-  public static String getTermByIndex(int index){
+  public String getTermByIndex(int index){
 	  return _terms.get(index);
   }
-  public static int getIndexByTerm(String s){
+  
+  public int getIndexByTerm(String s){
 	  return _dictionary.get(s);
+  }
+  
+  public int getTermCorpusFrequency(int index){
+    return _termCorpusFrequency.get(index);
   }
 }
