@@ -27,7 +27,9 @@ public class DocumentIndexed extends Document {
   public int getTermFrequency(int i) {
     return 0;
   }
-  
+  public Vector<Integer> getFreqList(){
+    return _freqList;
+  }
   public long totalTermFrequency(){
 	  return _indexer.totalTermFrequency();
   }

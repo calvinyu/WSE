@@ -235,5 +235,4 @@ class IndexerFullScan extends Indexer implements Serializable {
     }
     return retval;
   }
-
 }

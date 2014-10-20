@@ -49,7 +49,7 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
 
   @Override
   public void constructIndex() throws IOException {
-    String corpusFile = _options._corpusPrefix + "/wiki";
+    String corpusFile = _options._corpusPrefix;
     System.out.println("Construct index from: " + corpusFile);
     File folder = new File(corpusFile);
     File[] listOfFiles = folder.listFiles();
