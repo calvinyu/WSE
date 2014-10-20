@@ -25,7 +25,7 @@ public class DocumentIndexed extends Document {
   public void setTermFrequencyList(Vector<Integer> freqList) { _freqList = freqList; }
   // get term frequency.
   public int getTermFrequency(int i) {
-    return 0;
+    return 1;
   }
   public Vector<Integer> getFreqList(){
     return _freqList;

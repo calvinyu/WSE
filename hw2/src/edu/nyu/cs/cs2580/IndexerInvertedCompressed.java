@@ -13,9 +13,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
 
-import javafx.util.Pair;
-import org.jsoup.nodes.Document;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import edu.nyu.cs.cs2580.SearchEngine.Options;
 
@@ -23,26 +22,25 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
  * @CS2580: Implement this class for HW2.
  */
 public class IndexerInvertedCompressed extends Indexer {
-  private int SKIPSIZE = 10;
-  
-  private static HashMap<String, Integer> _dictionary = new HashMap<String, Integer>();
-  
-  private static Vector<String> _terms = new Vector<String>();
-  
-  private Vector<Vector<Vector<Pair<Integer, Integer>>>> _postingLists =
-      new Vector<Vector<Vector<Pair<Integer, Integer>>>>();
-  
-  private Vector<Vector<Byte>> _compressedPostingLists = new Vector<Vector<Byte>>();
-  
-  private Vector<Vector<Pair<Integer, Integer>>> _skipLists =
-      new Vector<Vector<Pair<Integer, Integer>>>();
-  
-  private Map<Integer, Integer> _termDocFrequency = new HashMap<Integer, Integer>();
+	public Map<String, Integer> _dictionary = new HashMap<String, Integer>();
+	  
+	private Vector<String> _terms = new Vector<String>();
 
-  private Map<Integer, Integer> _termCorpusFrequency = new HashMap<Integer, Integer>();
+	private Stopwords _stopwords = new Stopwords();
 
-  private Vector<DocumentIndexed> _documents = new Vector<DocumentIndexed>();
-  
+	//private short[][] _postingsList;
+
+	//private short[][] _docLists;
+
+	//private short[][] _docTermFrequency;
+	
+	private Byte[][] _compressedList;
+
+	private int[] _termDocFrequency;
+
+	public int[] _termCorpusFrequency;
+
+	private Vector<DocumentIndexed> _documents = new Vector<DocumentIndexed>();
   
   public IndexerInvertedCompressed(Options options) {
     super(options);
@@ -51,21 +49,58 @@ public class IndexerInvertedCompressed extends Indexer {
 
   @Override
   public void constructIndex() throws IOException {
-	  String corpusFile = _options._corpusPrefix + "/wiki";
+	    Vector<Integer> tmpTermDocFrequency = new Vector<Integer>();
+	    Vector<Integer> tmpTermCorpusFrequency = new Vector<Integer>();
+	    String corpusFile = _options._corpusPrefix + "/wiki";
 	    System.out.println("Construct index from: " + corpusFile);
 	    File folder = new File(corpusFile);
 	    File[] listOfFiles = folder.listFiles();
-	    for(File file : listOfFiles){
-	      processDocument(file);
+	    // First run: Determine the size of the array, initialize the attributes
+	    for (File file : listOfFiles) {
+	      processDocument(file, tmpTermDocFrequency, tmpTermCorpusFrequency);
+	    }
+	    // Put tmp values into arrays
+	    _termDocFrequency = new int[_terms.size()];
+	    _termCorpusFrequency = new int[_terms.size()];
+	    for (int i = 0; i < _terms.size(); i++) {
+	      _termDocFrequency[i] = tmpTermDocFrequency.get(i);
+	      _termCorpusFrequency[i] = tmpTermCorpusFrequency.get(i);
+	    }
+	    tmpTermDocFrequency.clear();
+	    tmpTermCorpusFrequency.clear();
+	    // Initialize the document list
+	    _docLists = new short[_terms.size()][];
+	    _docTermFrequency = new short[_terms.size()][];
+	    _postingsList = new short[_terms.size()][];
+	    for (int i = 0; i < _terms.size(); i++) {
+	      _docLists[i] = new short[_termDocFrequency[i]];
+	      _docTermFrequency[i] = new short[_termDocFrequency[i]];
+	      _postingsList[i] = new short[_termCorpusFrequency[i]];
+	      _termDocFrequency[i] = 0;
+	      _termCorpusFrequency[i] = 0;
 	    }
 
-		//compress the postingList
-		for (int i=0; i<_postingLists.size()-1;i++){
-			_compressedPostingLists.set(i, encodePosList(_postingLists.get(i), _skipLists.get(i)));
-		}
-		//delete the postingList
-		_postingLists.clear();
-		
+	    // Second run : Create the postings list
+	    for (File file : listOfFiles) {
+	      createPostingsList(file);
+	    }
+	    
+	    // Compress three lists into compressed vector
+	    Vector<Vector<Byte>> _compressedVector = new Vector<Vector<Byte>>();
+	    for(int i=0;i<_terms.size();i++){
+	    	_compressedVector.set(i, encodePosList(_docLists[i], 
+	    			_termDocFrequency[i], _postingsList[i], 
+	    			_termCorpusFrequency[i], _docTermFrequency[i], _termDocFrequency[i]));
+	    	_compressedList[i] = new Byte[_compressedVector.get(i).size()];
+	    	for(int j=0;j<_compressedVector.get(i).size();j++){
+	    		_compressedList[i][j] = _compressedVector.get(i).get(j);
+	    	}
+	    }
+	    
+	    // delete useless lists
+	    _compressedVector.clear(); _docLists = null;
+	    _docTermFrequency = null; _postingsList = null;
+	    
 	    System.out.println(
 	        "Indexed " + Integer.toString(_numDocs) + " docs with " +
 	            Long.toString(_totalTermFrequency) + " terms.");
@@ -78,64 +113,74 @@ public class IndexerInvertedCompressed extends Indexer {
 	    writer.close();
 	  }
 
-  private void processDocument(File file) throws IOException {
-	  Document DOM =  Jsoup.parse(file, "UTF-8", "");
-	  String content = DOM.select("#bodyContent").text();
+	  private void processDocument(File file, Vector<Integer> docFrequency, Vector<Integer> termFrequency) throws IOException {
+	    Document DOM = Jsoup.parse(file, "UTF-8", "");
+	    String content = DOM.select("#bodyContent").text().toLowerCase();
+	    content = Remove.remove(content);
 
-	  DocumentIndexed doc = new DocumentIndexed(_documents.size(), this);
-	  HashSet<Integer> uniqueTerms = new HashSet<Integer>();
-	  Vector<Integer> termVector = new Vector<Integer>();
-	  updateStatistics(content, uniqueTerms, termVector);
-
-	  doc.setTitle(file.getName());
-	  doc.setLength(termVector);
-	  _documents.add(doc);
-	  ++_numDocs;
-
-	  //all words that appear in this doc,
-	  for (Integer idx : uniqueTerms) {
-	    _termDocFrequency.put(idx, _termDocFrequency.get(idx) + 1);
+	    updateStatistics(content, docFrequency, termFrequency);
 	  }
-	}
 
-  private void updateStatistics(String content, HashSet<Integer> uniqueTerms, Vector<Integer> termVector){
-	   Scanner s = new Scanner(content);  // Uses white space by default.
-	   int offset = 0;
-	   while (s.hasNext()) {
-	     String word = s.next();
-	     int idx = -1;
-	     if (_dictionary.containsKey(word)) {
-	       idx = _dictionary.get(word);
-	     } else {
-	     idx = _terms.size();
-	     _terms.add(word);
-	     _postingLists.add(new Vector<Vector<Pair<Integer, Integer>>>());
-	     _dictionary.put(word, idx);
-	     _termCorpusFrequency.put(idx, 0);
-	     _termDocFrequency.put(idx, 0);
-	     }
-	   // check if the postingList already has this docid, if no then add.
-	     int docid = _documents.size();
-	     
-	     // find the corresponding Vector of this index of term
-	     Vector<Vector<Pair<Integer, Integer>>> temp = _postingLists.get(idx);
-	     // if the docid has been inserted, get the vector, add the pair and then set back
-	     if(temp.get(temp.size()-1).get(0).getKey() == docid){
-	    	 Vector<Pair <Integer, Integer>> cur = temp.get(temp.size()-1);
-	    	 cur.add(new Pair<Integer, Integer>(docid, offset));
-	    	 temp.set(temp.size()-1, cur);
-	     } else { // if docid is new, create a vector of pair, add the pair in the vector, and add the vector
-	    	 Vector<Pair <Integer, Integer>> cur = new Vector<Pair <Integer, Integer>>();
-	    	 cur.add(new Pair<Integer, Integer>(docid, offset));
-	    	 temp.add(cur);
-	     }
-	     _postingLists.set(idx, temp);
-	     uniqueTerms.add(idx);
-	     termVector.add(idx);
-	     _termCorpusFrequency.put(idx, _termCorpusFrequency.get(idx) + 1);
-	     ++_totalTermFrequency;
-	     ++offset;
-	   }
+	  private void updateStatistics(String content, Vector<Integer> docFrequency, Vector<Integer> termFrequency){
+	    HashSet<Integer> uniqueTerms = new HashSet<Integer>();
+	    Scanner s = new Scanner(content);  // Uses white space by default.
+	    while (s.hasNext()) {
+	      String word = s.next();
+	      if (_stopwords.wordsList.contains(word) || word.length() < 3 || word.length() > 20) continue;
+	      int idx;
+	      if (_dictionary.containsKey(word)) {
+	        idx = _dictionary.get(word);
+	      } else {
+	        idx = _terms.size();
+	        _terms.add(word);
+	        docFrequency.add(0);
+	        termFrequency.add(0);
+	        _dictionary.put(word, idx);
+	      }
+	      // for each term add its count.
+	      termFrequency.set(idx, termFrequency.get(idx) + 1);
+	      uniqueTerms.add(idx);
+	      _totalTermFrequency++;
+	    }
+	    s.close();
+	    for (int i : uniqueTerms) {
+	      docFrequency.set(i, docFrequency.get(i) + 1);
+	    }
+	  }
+
+	  private void createPostingsList(File file) throws IOException {
+	    Document DOM = Jsoup.parse(file, "UTF-8", "");
+	    String content = DOM.select("#bodyContent").text().toLowerCase();
+	    content = Remove.remove(content);
+
+	    HashMap<Integer, Vector<Integer>> uniqueTerms = new HashMap<Integer, Vector<Integer>>();
+	    int docid = _documents.size();
+	    DocumentIndexed doc = new DocumentIndexed(_documents.size(), this);
+	    doc.setTitle(file.getName());
+	    _documents.add(doc);
+	    _numDocs++;
+
+	    Scanner s = new Scanner(content);  // Uses white space by default.
+	    int offset = Short.MIN_VALUE;
+	    while (s.hasNext()) {
+	      String word = s.next();
+	      if (_stopwords.wordsList.contains(word) || word.length() < 3 || word.length() > 20) continue;
+	      int idx = _dictionary.get(word);
+	      if (!uniqueTerms.containsKey(idx)) uniqueTerms.put(idx, new Vector<Integer>());
+	      uniqueTerms.get(idx).add(offset);
+	      offset++;
+	    }
+	    s.close();
+	    for (int i : uniqueTerms.keySet()) {
+	      _docLists[i][_termDocFrequency[i]] = (short) docid;
+	      _docTermFrequency[i][_termDocFrequency[i]] = (short) uniqueTerms.get(i).size();
+	      _termDocFrequency[i]++;
+	      for (int j : uniqueTerms.get(i)) {
+	        _postingsList[i][_termCorpusFrequency[i]] = (short) j;
+	        _termCorpusFrequency[i]++;
+	      }
+	    }
+	    if (offset > 32767) System.out.println(docid + " " + offset);
 	  }
   
   @Override
@@ -150,10 +195,11 @@ public class IndexerInvertedCompressed extends Indexer {
 	    this._documents = loaded._documents;
 	    // Compute numDocs and totalTermFrequency b/c Indexer is not serializable.
 	    this._numDocs = _documents.size();
-	    for (Integer freq : loaded._termCorpusFrequency.values()) {
+	    for (Integer freq : loaded._termCorpusFrequency) {
 	      this._totalTermFrequency += freq;
 	    }
-	    this._postingLists = loaded._postingLists;
+	    //this._postingsList = loaded._postingsList;
+	    this._compressedList = loaded._compressedList;
 	    this._dictionary = loaded._dictionary;
 	    this._terms = loaded._terms;
 	    this._termCorpusFrequency = loaded._termCorpusFrequency;
@@ -175,92 +221,159 @@ public class IndexerInvertedCompressed extends Indexer {
   @Override
   public DocumentIndexed nextDoc(Query query, int docid) {
     // Check if all the query words exist
-    Vector<Integer> nextList = new Vector<Integer>();
+    Vector<Integer> nextIdxList = new Vector<Integer>();
+    Vector<Short> nextList = new Vector<Short>();
     Vector<Integer> freqList = new Vector<Integer>();
     Vector<String> phrases = new Vector<String>();
     for (String token : query._tokens) {
       String[] words = token.split(" ");
       for (String word : words) {
-        if (words.length > 1) phrases.add(token);
-        Pair<Integer, Vector<Integer>> idPosList = nextPosList(word, docid);
-        if (idPosList == null) return null;
-        nextList.add(idPosList.getKey());
-        freqList.add(idPosList.getValue().size());
+        if (!_dictionary.containsKey(word)) return null;
+        int nextIdx = next(word, docid);
+        if (words.length > 1) {
+          phrases.add(token);
+          nextIdxList.add(nextIdx);
+        }
+        if (nextIdx == Integer.MAX_VALUE) return null;
+        else {
+          nextList.add(_docLists[_dictionary.get(word)][nextIdx]);
+          freqList.add((int) _docTermFrequency[_dictionary.get(word)][nextIdx]);
+        }
       }
     }
-    int maxId = Collections.max(nextList);
+    int maxId = (int)Collections.max(nextList);
     if (maxId == Collections.min(nextList)) {
       // check if the document contains the phrases
+      Vector<Integer> phraseFreqs = new Vector<Integer>();
       for (String phrase : phrases) {
-        if (!phraseSearch(phrase, maxId)) return nextDoc(query, maxId - 1);
+        int freq = phraseSearch(phrase, nextIdxList);
+        if (freq == 0) { return nextDoc(query, maxId); }
+        phraseFreqs.add(freq);
       }
       // query is satisfied!!!
-      DocumentIndexed doc = (DocumentIndexed) getDoc(maxId);
+      DocumentIndexed doc = getDoc(maxId);
+      freqList.addAll(phraseFreqs);
       doc.setTermFrequencyList(freqList);
       return doc;
     }
     return nextDoc(query, maxId - 1);
   }
-
-  private boolean phraseSearch(String phrase, int docid) {
-    Vector<Vector<Integer>> phraseList = new Vector<Vector<Integer>>();
-    for (String word : phrase.split(" ")) {
-      phraseList.add(nextPosList(word, docid - 1).getValue());
+  
+  private int phraseSearch(String phrase, Vector<Integer> nextIdx) {
+    Vector<short[]> phraseList = new Vector<short[]>();
+    String[] phraseWords = phrase.split(" ");
+    for (int i = 0; i < phraseWords.length; i++) {
+      String word = phraseWords[i];
+      phraseList.add(createPosList(word, nextIdx.get(i), createOffsets(word)));
     }
-    int prevPos = -1;
-    int pos = -1;
+    int prevPos = (int) Short.MIN_VALUE - 1;
+    int pos = (int) Short.MIN_VALUE - 1;
+    int freqCount = 0;
     while (pos < Integer.MAX_VALUE) {
-      boolean result = true;
       for (int i = 0; i < phraseList.size(); i++) {
-        if (i == 0) prevPos = nextPos(phraseList.get(i), prevPos);
+        if (i == 0) {
+          prevPos = nextPos(phraseList.get(i), prevPos);
+        }
         else {
           pos = nextPos(phraseList.get(i), prevPos);
-          if (pos != prevPos - 1) {
-            prevPos = pos - i;
-            result = false;
+          if (pos != prevPos + 1) {
+            prevPos = pos - i + 1;
             break;
           }
+          prevPos = pos;
         }
       }
-      if (result) return true;
+      if (pos == prevPos) {
+        freqCount++;
+        prevPos = pos - phraseList.size() + 1;
+      }
     }
-    return false;
+    return freqCount;
+  }
+  
+  private int next(String word, int docid) {
+    if (!_dictionary.containsKey(word)) return Integer.MAX_VALUE;
+    short[] docList = _docLists[_dictionary.get(word)];
+    if (docList[docList.length - 1] <= docid) return Integer.MAX_VALUE;
+    if (docList[0] > docid) return 0;
+    return binarySearch(docList, 0, docList.length - 1, docid);
   }
 
-  private Pair<Integer, Vector<Integer>> nextPosList(String word, int docid) {
-    if (!_dictionary.containsKey(word)) return null;
-    Vector<Pair<Integer, Integer>> docList = _skipLists.get(_dictionary.get(word));
-    if (docList.get(docList.size() - 1).getKey() <= docid) return null;
-    if (docList.get(0).getKey() > docid) {
-      return decodePosList(_compressedPostingLists.get(_dictionary.get(word)), 0, docid);
-    }
-    // Returns the index of the skip pointer.
-    int startPos = binarySearch(docList, 0, docList.get(docList.size() - 1).getKey(), docid);
-    return decodePosList(_compressedPostingLists.get(_dictionary.get(word)), startPos, docid);
-  }
-
-  private int binarySearch(Vector<Pair<Integer, Integer>> docList, int low, int high, int docid) {
+  private int binarySearch(short[] docList, int low, int high, int docid) {
     while (high - low > 1) {
-      int mid = (high - low) / 2;
-      if (docList.get(mid).getKey() < docid) { low = mid; }
-      else { high = mid; }
-    }
-    return low;
-  }
-
-  private int nextPos(Vector<Integer> posList, int pos) {
-    if (posList.get(posList.size() - 1) <= pos) return Integer.MAX_VALUE;
-    if (posList.get(0) > pos) return Integer.MAX_VALUE;
-    return posList.get(binarySearchPos(posList, 0, posList.get(0), pos));
-  }
-
-  private int binarySearchPos(Vector<Integer> posList, int low, int high, int pos) {
-    while (high - low > 1) {
-      int mid = (high - low) / 2;
-      if (posList.get(mid) < pos) { low = mid; }
+      int mid = (high - low) / 2 + low;
+      if (docList[mid] <= docid) { low = mid; }
       else { high = mid; }
     }
     return high;
+  }
+
+  private int nextPos(short[] posList, int pos) {
+    if (posList[posList.length - 1] <= pos) { return Integer.MAX_VALUE; }
+    if (posList[0] > pos) { return posList[0]; }
+    return posList[binarySearch(posList, 0, posList.length - 1, pos)];
+  }
+
+  private int[] createOffsets(String word) {
+    if (!_dictionary.containsKey(word)) return null;
+    int idx = _dictionary.get(word);
+    //short[] docIds = _docLists[idx];
+    short[] docFrequency = _docTermFrequency[idx];
+    int[] offsets = new int[docFrequency.length];
+    for (int i = 1; i < offsets.length; i++) {
+      offsets[i] = offsets[i - 1] + docFrequency[i - 1];
+    }
+    return offsets;
+  }
+
+  private short[] createPosList(String word, int docIdx, int[] offsets) {
+    int idx = _dictionary.get(word);
+    short[] allPosList = _postingsList[idx];
+    int start = offsets[docIdx];
+    int end = docIdx == offsets.length - 1 ? allPosList.length : offsets[docIdx + 1];
+    short[] posList = new short[end - start];
+    for (int i = 0; i < end - start; i++) {
+      posList[i] = allPosList[start + i];
+    }
+    return posList;
+  }
+
+  private Vector<Short> nextPosList(String word, int docid) {
+    if (!_dictionary.containsKey(word)) return null;
+    Vector<Short> docLists = new Vector<Short>();
+    Vector<Short> docTermFrequency = new Vector<Short>();
+    Vector<Short> postingsList = new Vector<Short>();
+    int index = _dictionary.get(word);
+    Byte[] encodedList =  _compressedList[index];
+    return decodeList(encodedList, postingsList, docLists, docTermFrequency, docid);
+  }
+
+  private Vector<Short> decodeList(Byte[] list, Vector<Short> postingsList,
+      Vector<Short> docLists, Vector<Short> docTermFrequency, int docid){
+    Vector<Short> output = new Vector<Short>();
+    //parsing
+      short[] sList = decode(list);
+      for(int i=0; i<sList.length;){
+        //Doc id
+        if(i == 0 )
+          docLists.add(sList[i++]);
+        else 
+          docLists.add((short) (docLists.get(docLists.size()-1) + sList[i++]));
+        //frequency
+        short len = sList[i++];
+        docTermFrequency.add(len);
+        //posting list
+        for(int j=0; j<len; ++j){
+          if(docLists.get(docLists.size()-1) == docid){
+            output.add(sList[i]);
+          }
+          if(j==0)
+            postingsList.add(sList[i++]);
+          else
+            postingsList.add((short) (postingsList.get(postingsList.size()-1) + sList[i++]));
+        }
+      }
+      return output;
   }
 
   @Override
@@ -281,89 +394,51 @@ public class IndexerInvertedCompressed extends Indexer {
     return 0;
   }
 
-  private Vector<Byte> encodePosList(Vector<Vector<Pair<Integer, Integer>>> docList,
-                                     Vector<Pair<Integer, Integer>> skipPointer) {
-    Vector<Integer> output = new Vector<Integer>();
-    int pointer = 0;
-    int prevId = 0;
-    int counter = 0;
-    for (int i = 0; i < docList.size(); i++) {
-      Vector<Pair<Integer, Integer>> posList = docList.get(i);
-      int currentId = posList.get(0).getKey();
-      output.add(currentId - prevId);
-      prevId = currentId;
-      output.add(posList.size());
-      if (counter % SKIPSIZE == 0) {
-        skipPointer.add(new Pair<Integer, Integer>(currentId, pointer));
+  private Vector<Byte> encodePosList(short[] docList, int L1, short[] postingsList, int L2,
+                         short[] docTermFrequency, int L3) {
+    short[] output = new short[L1 + L2 + L3];
+    int counterOfPos = 0;
+    for (int i = 0; i < L1; i++) {
+      int place = 0;
+      // get docid
+      if(i==0){
+    	  output[place] = docList[i];
+      } else {
+    	  output[place] = (short) (docList[i] - docList[i-1]);
       }
-      int prevPos = 0;
-      for (Pair<Integer, Integer> pos : posList) {
-        output.add(pos.getValue() - prevPos);
-        prevPos = pos.getValue();
+      place++;
+      // get times of occurrences
+      output[place++] = docTermFrequency[i];
+      // put corresponding number of offsets into output
+      // and do delta compression
+      for(int j=0;j < docTermFrequency[i];j++){
+    	  output[place++] = 
+    	    (short) ((j==0) ? postingsList[counterOfPos] : 
+    	    	(postingsList[counterOfPos] - postingsList[counterOfPos-1]));
+    	  counterOfPos++;
       }
-      pointer += 2 + posList.size();
-      counter++;
     }
     return encode(output);
   }
 
-  private Vector<Byte> encode(Vector<Integer> input) {
-    Vector<Byte> output = new Vector<Byte>();
-    for (int i : input) {
+  private Vector<Byte> encode(short[] output) {
+	Vector<Byte> op1 = new Vector<Byte>();
+    for (short i : output) {
       while (i >= 128) {
-        output.add((byte) (i & 0x7F));
+        op1.add((byte) (i & 0x7F));
         i >>>= 7;
       }
-      output.add((byte) (i | 0x80));
+      op1.add((byte) (i | 0x80));
+    }
+    return op1;
+  }
+  
+
+  private short[] decode(Byte[] input){
+    short[] output = new short[input.length];
+    for(int i=0; i<input.length; i+=2){
+          output[i] = (short) (input[i]<<8 | input[i+1]);
     }
     return output;
-  }
-
-  private int[] decode(Vector<Byte> input, int startPos) {
-    int i = startPos;
-    int result = ((int) input.get(i) & 0x7F);
-    while (((int) input.get(i) & 0x80) == 0) {
-      i += 1;
-      int unsignedByte = (int) input.get(i) & 0x7F;
-      result |= (unsignedByte << (7 * (i - startPos)));
-    }
-    int[] posResult = {i + 1, result};
-    return posResult;
-  }
-
-  private Pair<Integer, Vector<Integer>> decodePosList(Vector<Byte> input, int startPos, int docid) {
-    Vector<Integer> posList = new Vector<Integer>();
-    int pos = startPos;
-    while (decode(input, pos)[1] <= docid) {
-      int[] posId = decode(input, pos);
-      int[] posSize = decode(input, posId[0]);
-      pos = posSize[0];
-      for (int i = 0; i < posSize[1]; i++) {
-        int[] posPos = decode(input, pos);
-        pos = posPos[0];
-      }
-    }
-    int[] posId = decode(input, pos);
-    int[] posSize = decode(input, posId[0]);
-    int[] prevPos = {posSize[0], 0};
-    for (int i = 0; i < posSize[1]; i++) {
-      int[] posPos = decode(input, prevPos[0]);
-      prevPos[0] = posPos[0];
-      prevPos[1] = posPos[1] + prevPos[1];
-      posList.add(prevPos[1]);
-    }
-    return new Pair<Integer, Vector<Integer>>(posId[1], posList);
-  }
-  
-  public String getTermByIndex(int index){
-	  return _terms.get(index);
-  }
-  
-  public int getIndexByTerm(String s){
-	  return _dictionary.get(s);
-  }
-  
-  public int getTermCorpusFrequency(int index){
-    return _termCorpusFrequency.get(index);
   }
 }

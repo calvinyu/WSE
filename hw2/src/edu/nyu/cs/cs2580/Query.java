@@ -27,21 +27,21 @@ public class Query {
   }
 
   public void processQuery() {
+    if(set == null) set = Query.readStopWords();
     if (_query == null) {
       return;
     }
     Scanner s = new Scanner(_query);
     while (s.hasNext()) {
       String word = s.next();
-      if(!isStopWord(word)) _tokens.add(s.next());
+      if(!isStopWord(word)) _tokens.add(word);
     }
     s.close();
+
   }
   private boolean isStopWord(String s){
-    if(set == null) set = Query.readStopWords();
     return set.contains(s);
   }
-  @SuppressWarnings("resource")
   private static Set<String> readStopWords(){
     String filePath = "data/stopwords/long_stopwords.txt";
     File stopwordFile = new File(filePath);
@@ -53,7 +53,10 @@ public class Query {
       System.out.println("File open failed:" + filePath);
     };
      Set<String> set = new TreeSet<String>();
-    set.add(scanner.nextLine());
+     while(scanner.hasNextLine()){
+       set.add(scanner.nextLine());
+     }
+     scanner.close();
     return set;
   }
 }

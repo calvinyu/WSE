@@ -61,7 +61,7 @@ class IndexerFullScan extends Indexer implements Serializable {
    */
   @Override
   public void constructIndex() throws IOException {
-    String corpusFile = _options._corpusPrefix + "/corpus.tsv";
+    String corpusFile = _options._corpusPrefix;
     System.out.println("Construct index from: " + corpusFile);
 
     BufferedReader reader = new BufferedReader(new FileReader(corpusFile));

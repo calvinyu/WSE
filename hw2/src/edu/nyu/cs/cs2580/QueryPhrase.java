@@ -17,10 +17,20 @@ public class QueryPhrase extends Query {
   @Override
   public void processQuery() {
     if (_query == null) { return; }
-    String regex = "\"([^\"]*)\"|(\\S+)";
-    Matcher m = Pattern.compile(regex).matcher(_query);
-    while (m.find()) {
-      _tokens.add(m.group());
+    System.out.println(_query);
+    Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+    Matcher regexMatcher = regex.matcher(_query);
+    while (regexMatcher.find()) {
+      if (regexMatcher.group(1) != null) {
+        // Add double-quoted string without the quotes
+        _tokens.add(regexMatcher.group(1));
+      } else if (regexMatcher.group(2) != null) {
+        // Add single-quoted string without the quotes
+        _tokens.add(regexMatcher.group(2));
+      } else {
+        // Add unquoted word
+        _tokens.add(regexMatcher.group());
+      }
     }
   }
 }
