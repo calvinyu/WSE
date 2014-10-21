@@ -56,8 +56,11 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
     File[] listOfFiles = folder.listFiles();
     // First run: Determine the size of the array, initialize the attributes
     int cnt = 0;
+    System.out.println("First round");
     for (File file : listOfFiles) {
-	System.out.println(cnt++);
+      cnt++;
+      if(cnt%100==0)
+        System.out.println(cnt);
       processDocument(file, tmpTermDocFrequency, tmpTermCorpusFrequency);
     }
     // Put tmp values into arrays
@@ -82,7 +85,11 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
     }
     System.out.println("Done");
     // Second run : Create the postings list
+    System.out.println("Second round");
+    cnt = 0;
     for (File file : listOfFiles) {
+      cnt++;
+      if(cnt%100 == 0) System.out.println(cnt);
       createPostingsList(file);
     }
     System.out.println(

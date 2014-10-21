@@ -56,7 +56,11 @@ public class IndexerInvertedCompressed extends Indexer {
 	    File folder = new File(corpusFile);
 	    File[] listOfFiles = folder.listFiles();
 	    // First run: Determine the size of the array, initialize the attributes
+	    System.out.println("First round");
+	    int cnt = 0;
 	    for (File file : listOfFiles) {
+	      cnt++;
+	      if(cnt%100==0) System.out.println(cnt);
 	      processDocument(file, tmpTermDocFrequency, tmpTermCorpusFrequency);
 	    }
 	    // Put tmp values into arrays
@@ -81,7 +85,10 @@ public class IndexerInvertedCompressed extends Indexer {
 	    }
 
 	    // Second run : Create the postings list
+	    cnt = 0;
 	    for (File file : listOfFiles) {
+	      cnt++;
+	      if(cnt%100==0) System.out.println(cnt);
 	      createPostingsList(file);
 	    }
 	    

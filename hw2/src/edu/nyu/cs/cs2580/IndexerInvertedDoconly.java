@@ -54,7 +54,11 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
     File folder = new File(corpusFile);
     File[] listOfFiles = folder.listFiles();
     // First run: Determine the size of the array
+    System.out.println("First round!!");
+    int cnt =0;
     for (File file : listOfFiles) {
+      cnt++;
+      if(cnt%100==0) System.out.println(cnt);
       processDocument(file);
     }
     // Initialize the postings list
@@ -64,7 +68,11 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
       _termDocFrequency.set(i, 0);
     }
     // Second run: Create the posting list
+    System.out.println("Second round!!");
+    cnt=0;
     for(File file : listOfFiles){
+      cnt++;
+      if(cnt%100==0) System.out.println(cnt);
       createPostingsList(file);
     }
     // Convert posting lists to posting arrays
