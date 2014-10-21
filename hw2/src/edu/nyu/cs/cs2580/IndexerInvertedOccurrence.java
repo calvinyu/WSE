@@ -24,7 +24,10 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
  */
 public class IndexerInvertedOccurrence extends Indexer implements Serializable {
 
+  private static final long serialVersionUID = 4227951763532013752L;
+  
   private Map<String, Integer> _dictionary = new HashMap<String, Integer>();
+  
   private Vector<String> _terms = new Vector<String>();
 
   private Stopwords _stopwords = new Stopwords();
@@ -133,6 +136,7 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
       uniqueTerms.add(idx);
       _totalTermFrequency++;
     }
+    s.close();
     for (int i : uniqueTerms) {
       docFrequency.set(i, docFrequency.get(i) + 1);
     }
@@ -160,6 +164,7 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
       uniqueTerms.get(idx).add(offset);
       offset++;
     }
+    s.close();
     for (int i : uniqueTerms.keySet()) {
       _docLists[i][_termDocFrequency[i]] = (short) docid;
       _docTermFrequency[i][_termDocFrequency[i]] = (short) uniqueTerms.get(i).size();
@@ -308,7 +313,7 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
   private int[] createOffsets(String word) {
     if (!_dictionary.containsKey(word)) return null;
     int idx = _dictionary.get(word);
-    short[] docIds = _docLists[idx];
+    //short[] docIds = _docLists[idx];
     short[] docFrequency = _docTermFrequency[idx];
     int[] offsets = new int[docFrequency.length];
     for (int i = 1; i < offsets.length; i++) {

@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +22,9 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
 /**
  * @CS2580: Implement this class for HW2.
  */
-public class IndexerInvertedCompressed extends Indexer {
+public class IndexerInvertedCompressed extends Indexer implements Serializable {
+	private static final long serialVersionUID = 1722548756845452879L;
+
 	public Map<String, Integer> _dictionary = new HashMap<String, Integer>();
 	  
 	private Vector<String> _terms = new Vector<String>();
@@ -51,16 +54,12 @@ public class IndexerInvertedCompressed extends Indexer {
   public void constructIndex() throws IOException {
 	    Vector<Integer> tmpTermDocFrequency = new Vector<Integer>();
 	    Vector<Integer> tmpTermCorpusFrequency = new Vector<Integer>();
-	    String corpusFile = _options._corpusPrefix + "/wiki";
+	    String corpusFile = _options._corpusPrefix;
 	    System.out.println("Construct index from: " + corpusFile);
 	    File folder = new File(corpusFile);
 	    File[] listOfFiles = folder.listFiles();
-	    // First run: Determine the size of the array, initialize the attributes
-	    System.out.println("First round");
-	    int cnt = 0;
+
 	    for (File file : listOfFiles) {
-	      cnt++;
-	      if(cnt%100==0) System.out.println(cnt);
 	      processDocument(file, tmpTermDocFrequency, tmpTermCorpusFrequency);
 	    }
 	    // Put tmp values into arrays
@@ -85,28 +84,29 @@ public class IndexerInvertedCompressed extends Indexer {
 	    }
 
 	    // Second run : Create the postings list
-	    cnt = 0;
+	    System.out.println("Sizes initialized...");
 	    for (File file : listOfFiles) {
-	      cnt++;
-	      if(cnt%100==0) System.out.println(cnt);
 	      createPostingsList(file);
 	    }
 	    
 	    // Compress three lists into compressed vector
-	    Vector<Vector<Byte>> _compressedVector = new Vector<Vector<Byte>>();
+	    _compressedList = new Byte[_terms.size()][];
 	    for(int i=0;i<_terms.size();i++){
-	    	_compressedVector.set(i, encodePosList(_docLists[i], 
+	    	// get the compressed vector
+	    	Vector<Byte> _compressedVector = encodePosList(_docLists[i], 
 	    			_termDocFrequency[i], _postingsList[i], 
-	    			_termCorpusFrequency[i], _docTermFrequency[i], _termDocFrequency[i]));
-	    	_compressedList[i] = new Byte[_compressedVector.get(i).size()];
-	    	for(int j=0;j<_compressedVector.get(i).size();j++){
-	    		_compressedList[i][j] = _compressedVector.get(i).get(j);
+	    			_termCorpusFrequency[i], _docTermFrequency[i], _termDocFrequency[i]);
+	    	
+	    	// write it to array
+	    	_compressedList[i] = new Byte[_compressedVector.size()];
+	    	for(int j=0;j<_compressedVector.size();j++){
+	    		_compressedList[i][j] = _compressedVector.get(j);
 	    	}
+	    	_compressedVector.clear();
 	    }
 	    
 	    // delete useless lists
-	    _compressedVector.clear(); _docLists = null;
-	    _docTermFrequency = null; _postingsList = null;
+	     _docLists = null; _docTermFrequency = null; _postingsList = null;
 	    
 	    System.out.println(
 	        "Indexed " + Integer.toString(_numDocs) + " docs with " +
@@ -345,6 +345,7 @@ public class IndexerInvertedCompressed extends Indexer {
     return posList;
   }
 
+  @SuppressWarnings("unused")
   private Vector<Short> nextPosList(String word, int docid) {
     if (!_dictionary.containsKey(word)) return null;
     Vector<Short> docLists = new Vector<Short>();
