@@ -28,11 +28,11 @@ public class IndexerInvertedCompressed extends Indexer {
 
 	private Stopwords _stopwords = new Stopwords();
 
-	//private short[][] _postingsList;
+	private short[][] _postingsList;
 
-	//private short[][] _docLists;
+	private short[][] _docLists;
 
-	//private short[][] _docTermFrequency;
+	private short[][] _docTermFrequency;
 	
 	private Byte[][] _compressedList;
 
@@ -245,7 +245,7 @@ public class IndexerInvertedCompressed extends Indexer {
     if (maxId == Collections.min(nextList)) {
       // check if the document contains the phrases
       Vector<Integer> phraseFreqs = new Vector<Integer>();
-      for (String phrase : phrases) {x
+      for (String phrase : phrases) {
         int freq = phraseSearch(phrase, nextIdxList);
         if (freq == 0) { return nextDoc(query, maxId); }
         phraseFreqs.add(freq);
@@ -444,9 +444,13 @@ public class IndexerInvertedCompressed extends Indexer {
 }
 /* commands
 
-compile: javac -cp lib/jsoup-1.8.1.jar src/edu/nyu/cs/cs2580/*.java
-contruct index: java -cp src:lib/jsoup-1.8.1.jar -Xmx512m edu.nyu.cs.cs2580.SearchEngine  --mode=index  --options=conf/engine.conf
-start server: java -cp src:lib/jsoup-1.8.1.jar -Xmx512m edu.nyu.cs.cs2580.SearchEngine  --mode=serve --port=25813 --options=conf/engine.conf
-query: curl 'localhost:25813/search?query=web&ranker=occurence'
+compile: 
+        javac -cp lib/jsoup-1.8.1.jar src/edu/nyu/cs/cs2580/*.java
+contruct index: 
+        java -cp src:lib/jsoup-1.8.1.jar -Xmx512m edu.nyu.cs.cs2580.SearchEngine  --mode=index  --options=conf/engine.conf
+start server: 
+        java -cp src:lib/jsoup-1.8.1.jar -Xmx512m edu.nyu.cs.cs2580.SearchEngine  --mode=serve --port=25813 --options=conf/engine.conf
+query: 
+        curl 'localhost:25813/search?query=web&ranker=occurence'
 
 */
