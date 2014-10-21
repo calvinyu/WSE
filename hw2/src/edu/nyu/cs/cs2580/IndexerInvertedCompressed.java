@@ -458,6 +458,6 @@ contruct index:
 start server: 
         java -cp src:lib/jsoup-1.8.1.jar -Xmx512m edu.nyu.cs.cs2580.SearchEngine  --mode=serve --port=25813 --options=conf/engine.conf
 query: 
-        curl 'localhost:25813/search?query=web&ranker=occurence'
+        curl 'localhost:25813/search?query=grammy&ranker=conjunctive'
 
 */

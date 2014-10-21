@@ -90,7 +90,7 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
 
   private void processDocument(File file) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
-    String content = DOM.select("#bodyContent").text();
+    String content = DOM.select("#bodyContent").text().toLowerCase();
     content = Remove.remove(content);
 
     updateStatistics(content);
@@ -120,7 +120,7 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
 
   private void createPostingsList(File file) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
-    String content = DOM.select("#bodyContent").text();
+    String content = DOM.select("#bodyContent").text().toLowerCase();
     content = Remove.remove(content);
 
     int docid = _documents.size();
@@ -132,7 +132,7 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
     HashSet<Integer> uniqueTerms = new HashSet<Integer>();
     Scanner s = new Scanner(content);  // Uses white space by default.
     while (s.hasNext()) {
-      String word = s.next();
+      String word = s.next().toLowerCase();
       int idx = _dictionary.get(word);
       uniqueTerms.add(idx);
     }
@@ -140,7 +140,6 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
       _postingsList[i][_termDocFrequency.get(i)] = docid;
       _termDocFrequency.set(i, _termDocFrequency.get(i) + 1);
     }
-    System.out.println(docid);
   }
 
   @Override
@@ -151,7 +150,6 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
     ObjectInputStream reader =
         new ObjectInputStream(new FileInputStream(indexFile));
     IndexerInvertedDoconly loaded = (IndexerInvertedDoconly) reader.readObject();
-    System.out.println("test");
 
     this._documents = loaded._documents;
     // Compute numDocs and totalTermFrequency b/c Indexer is not serializable.
@@ -185,7 +183,6 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
     Vector<Integer> nextList = new Vector<Integer>();
     for (String word : query._tokens) {
       int nextPos = next(word, docid);
-      System.out.println(nextPos);
       if (nextPos == Integer.MAX_VALUE) { return null; }
       else nextList.add(nextPos);
     }
@@ -201,16 +198,15 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
     int[] docList = _postingsList[_dictionary.get(word)];
     if (docList[docList.length - 1] <= docid) { return Integer.MAX_VALUE; }
     if (docList[0] > docid) { return docList[0]; }
-    return docList[binarySearch(docList, 0, docList[docList.length - 1], docid)];
+    return docList[binarySearch(docList, 0, docList.length - 1, docid)];
   }
 
   private int binarySearch(int[] docList, int low, int high, int docid) {
     while (high - low > 1) {
-      int mid = (high - low) / 2;
-      if (docList[mid] < docid) { low = mid; }
+      int mid = (high + low) / 2;
+      if (docList[mid] <= docid) { low = mid; }
       else { high = mid; }
     }
-    System.out.println(docid + " " + high);
     return high;
   }
 
@@ -229,12 +225,4 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
     SearchEngine.Check(false, "Not implemented!");
     return 0;
   }
-	
-	
-	public String getTermByIndex(int index){
-		return _terms.get(index);
-	}
-	public int getIndexByTerm(String s){
-		return _dictionary.get(s);
-	}
 }
