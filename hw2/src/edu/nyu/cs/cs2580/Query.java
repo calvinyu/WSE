@@ -23,7 +23,7 @@ public class Query {
   private static Set<String> set = null;
   
   public Query(String query) {
-    _query = query;
+    _query = query.replace("+", " ");
   }
 
   public void processQuery() {
