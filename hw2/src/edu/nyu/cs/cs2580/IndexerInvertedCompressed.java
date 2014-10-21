@@ -28,11 +28,11 @@ public class IndexerInvertedCompressed extends Indexer {
 
 	private Stopwords _stopwords = new Stopwords();
 
-	//private short[][] _postingsList;
+	private short[][] _postingsList;
 
-	//private short[][] _docLists;
+	private short[][] _docLists;
 
-	//private short[][] _docTermFrequency;
+	private short[][] _docTermFrequency;
 	
 	private Byte[][] _compressedList;
 
