@@ -439,7 +439,6 @@ public class IndexerInvertedCompressed extends Indexer {
     }
     return op1;
   }
-  
 
   private short[] decode(Byte[] input){
     short[] output = new short[input.length];
