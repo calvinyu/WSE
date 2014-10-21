@@ -50,12 +50,14 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
   public void constructIndex() throws IOException {
     Vector<Integer> tmpTermDocFrequency = new Vector<Integer>();
     Vector<Integer> tmpTermCorpusFrequency = new Vector<Integer>();
-    String corpusFile = _options._corpusPrefix + "/wiki";
+    String corpusFile = _options._corpusPrefix;
     System.out.println("Construct index from: " + corpusFile);
     File folder = new File(corpusFile);
     File[] listOfFiles = folder.listFiles();
     // First run: Determine the size of the array, initialize the attributes
+    int cnt = 0;
     for (File file : listOfFiles) {
+	System.out.println(cnt++);
       processDocument(file, tmpTermDocFrequency, tmpTermCorpusFrequency);
     }
     // Put tmp values into arrays
