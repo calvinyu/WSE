@@ -112,7 +112,6 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
       }
       uniqueTerms.add(idx);
     }
-    s.close();
     for (int i : uniqueTerms) {
       _termDocFrequency.set(i, _termDocFrequency.get(i) + 1);
     }
@@ -137,7 +136,6 @@ public class IndexerInvertedDoconly extends Indexer implements Serializable{
       int idx = _dictionary.get(word);
       uniqueTerms.add(idx);
     }
-    s.close();
     for (int i : uniqueTerms) {
       _postingsList[i][_termDocFrequency.get(i)] = docid;
       _termDocFrequency.set(i, _termDocFrequency.get(i) + 1);

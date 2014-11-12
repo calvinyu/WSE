@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--[if IE 8]> <html class="lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>No.13 Search Engine</title>
+  <script src="js/jquery-1.9.1.js"></script>
+  <script>
+  $(document).ready(function(){
+    $('#result').slideUp();
+    $('#backToSearch').css({'cursor': 'pointer', 'text-decoration': 'underline'});
+    $('#go').click(function(){
+    
+      var encode_uri = 'http://localhost:25813/search?' + encodeURIComponent('query='+
+      $('#query').val() + '&ranker=QL&format=html');
+      
+      //$('#result').load(encode_uri);
+      window.open(encode_uri,'_self');
+      $('#result').append('<p id="backToSearch">Back to Home</p>');
+      $('#gogogo').slideUp();
+      $('#result').slideDown();
+    });
+    
+    $('#backToSearch').click(function(){
+      $('#result').slideUp();
+      $('#gogogo').slideDown();
+    });
+  });
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <form id="gogogo" class="login">
+    <h1>No.13 Search Engine</h1>
+    <br><br><br><br><br><br>
+    <input type="text" id="query" class="login-input" placeholder="Your query here" autofocus>
+    <input id="go" type="button" value="Go!" class="login-submit"><br><br>
+    <p class="login-statement">web design by Joshua</p>
+  </form>
+ <div id="result" style="text-align:center; clear:both">
+	
+</div>
+</body>
+</html>

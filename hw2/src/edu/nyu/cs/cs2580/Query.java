@@ -1,6 +1,7 @@
 package edu.nyu.cs.cs2580;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,7 +23,7 @@ public class Query {
   private static Set<String> set = null;
   
   public Query(String query) {
-    _query = query.replace("+", " ");
+    _query = query.toLowerCase().replace("+", " ");
   }
 
   public void processQuery() {
@@ -31,10 +32,12 @@ public class Query {
       return;
     }
     Scanner s = new Scanner(_query);
+    /*
     while (s.hasNext()) {
       String word = s.next();
       if(!isStopWord(word)) _tokens.add(word);
     }
+    */
     s.close();
 
   }
@@ -53,7 +56,9 @@ public class Query {
     };
      Set<String> set = new TreeSet<String>();
      while(scanner.hasNextLine()){
-       set.add(scanner.nextLine());
+       String word = scanner.nextLine();
+       System.out.println(word);
+       set.add(word);
      }
      scanner.close();
     return set;

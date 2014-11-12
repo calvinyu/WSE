@@ -5,9 +5,6 @@ import java.lang.String;
 import java.util.Vector;
 
 public class Stopwords implements Serializable {
-
-  private static final long serialVersionUID = -2614350730206565859L;
-  
   public Vector<String> wordsList = new Vector<String>();
 
   public Stopwords() {

@@ -1,6 +1,7 @@
 package edu.nyu.cs.cs2580;
 
 import java.util.Vector;
+import java.util.HashMap;
 
 /**
  * @CS2580: implement this class for HW2 to incorporate any additional
@@ -17,8 +18,8 @@ public class DocumentIndexed extends Document {
     _indexer = indexer;
   }
   // set document length (to compute language model probabilities).
-  public void setLength(Vector<Integer> doc) {
-    length = doc.size();
+  public void setLength(int length) {
+    this.length = length;
   }
   // set termFrequency.
   public void setTermFrequencyList(Vector<Integer> freqList) { _freqList = freqList; }

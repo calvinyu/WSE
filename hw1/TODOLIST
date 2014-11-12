@@ -1,0 +1,24 @@
+1. ranking
+results of each query in each ranking methods
+  hw1.1-vsm.tsv 
+  hw1.1-ql.tsv 
+  hw1.1-phrase.tsv 
+  hw1.1-numviews.tsv
+
+2. ranking
+
+result for linear ranking method
+  hw1.2-linear.tsv
+
+3. evaluation
+
+evaluation metrics for each query
+  hw1.3-vsm.tsv
+  hw1.3-ql.tsv
+  hw1.3-phrase.tsv
+  hw1.3-numview.tsv
+  hw1.3-linear.tsv
+ 
+4. click logging
+
+  hw1.4-log.tsv

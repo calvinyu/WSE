@@ -24,10 +24,11 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
  */
 public class IndexerInvertedOccurrence extends Indexer implements Serializable {
 
-  private static final long serialVersionUID = 4227951763532013752L;
-  
-  private Map<String, Integer> _dictionary = new HashMap<String, Integer>();
-  
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  public Map<String, Integer> _dictionary = new HashMap<String, Integer>();
   private Vector<String> _terms = new Vector<String>();
 
   private Stopwords _stopwords = new Stopwords();
@@ -40,7 +41,7 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
 
   private int[] _termDocFrequency;
 
-  private int[] _termCorpusFrequency;
+  public int[] _termCorpusFrequency;
 
   private Vector<DocumentIndexed> _documents = new Vector<DocumentIndexed>();
 
@@ -58,12 +59,11 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
     File folder = new File(corpusFile);
     File[] listOfFiles = folder.listFiles();
     // First run: Determine the size of the array, initialize the attributes
+    System.out.println("First round!!!");
     int cnt = 0;
-    System.out.println("First round");
     for (File file : listOfFiles) {
-      cnt++;
-      if(cnt%100==0)
-        System.out.println(cnt);
+      cnt ++;
+      if(cnt%100==0) System.out.println(cnt);
       processDocument(file, tmpTermDocFrequency, tmpTermCorpusFrequency);
     }
     // Put tmp values into arrays
@@ -88,11 +88,11 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
     }
     System.out.println("Done");
     // Second run : Create the postings list
-    System.out.println("Second round");
+    System.out.println("Second round!!!");
     cnt = 0;
     for (File file : listOfFiles) {
-      cnt++;
-      if(cnt%100 == 0) System.out.println(cnt);
+      cnt ++;
+      if(cnt%100==0) System.out.println(cnt);
       createPostingsList(file);
     }
     System.out.println(
@@ -136,7 +136,6 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
       uniqueTerms.add(idx);
       _totalTermFrequency++;
     }
-    s.close();
     for (int i : uniqueTerms) {
       docFrequency.set(i, docFrequency.get(i) + 1);
     }
@@ -156,6 +155,7 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
 
     Scanner s = new Scanner(content);  // Uses white space by default.
     int offset = Short.MIN_VALUE;
+    int docsize = 0;
     while (s.hasNext()) {
       String word = s.next();
       if (_stopwords.wordsList.contains(word) || word.length() < 3 || word.length() > 20) continue;
@@ -163,8 +163,9 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
       if (!uniqueTerms.containsKey(idx)) uniqueTerms.put(idx, new Vector<Integer>());
       uniqueTerms.get(idx).add(offset);
       offset++;
+      docsize++;
     }
-    s.close();
+    doc.setLength(docsize);
     for (int i : uniqueTerms.keySet()) {
       _docLists[i][_termDocFrequency[i]] = (short) docid;
       _docTermFrequency[i][_termDocFrequency[i]] = (short) uniqueTerms.get(i).size();
@@ -217,18 +218,24 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
   @Override
   public DocumentIndexed nextDoc(Query query, int docid) {
     // Check if all the query words exist
-    Vector<Integer> nextIdxList = new Vector<Integer>();
+    Vector<Vector<Integer>> nextIdxList = new Vector<Vector<Integer>>();
+    Vector<Integer> tmpNextIdx = new Vector<Integer>();
     Vector<Short> nextList = new Vector<Short>();
     Vector<Integer> freqList = new Vector<Integer>();
     Vector<String> phrases = new Vector<String>();
     for (String token : query._tokens) {
       String[] words = token.split(" ");
-      for (String word : words) {
+      if (words.length > 1) phrases.add(token);
+      for (int i = 0; i < words.length; i++) {
+        String word = words[i];
         if (!_dictionary.containsKey(word)) return null;
         int nextIdx = next(word, docid);
         if (words.length > 1) {
-          phrases.add(token);
-          nextIdxList.add(nextIdx);
+          tmpNextIdx.add(nextIdx);
+          if (i == words.length - 1) {
+            nextIdxList.add(tmpNextIdx);
+            tmpNextIdx = new Vector<Integer>();
+          }
         }
         if (nextIdx == Integer.MAX_VALUE) return null;
         else {
@@ -237,12 +244,13 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
         }
       }
     }
-    int maxId = (int)Collections.max(nextList);
+    int maxId =(int) Collections.max(nextList);
     if (maxId == Collections.min(nextList)) {
       // check if the document contains the phrases
       Vector<Integer> phraseFreqs = new Vector<Integer>();
-      for (String phrase : phrases) {
-        int freq = phraseSearch(phrase, nextIdxList);
+      for (int i = 0; i < phrases.size(); i++) {
+        String phrase = phrases.get(i);
+        int freq = phraseSearch(phrase, nextIdxList.get(i));
         if (freq == 0) { return nextDoc(query, maxId); }
         phraseFreqs.add(freq);
       }
@@ -313,7 +321,7 @@ public class IndexerInvertedOccurrence extends Indexer implements Serializable {
   private int[] createOffsets(String word) {
     if (!_dictionary.containsKey(word)) return null;
     int idx = _dictionary.get(word);
-    //short[] docIds = _docLists[idx];
+    short[] docIds = _docLists[idx];
     short[] docFrequency = _docTermFrequency[idx];
     int[] offsets = new int[docFrequency.length];
     for (int i = 1; i < offsets.length; i++) {

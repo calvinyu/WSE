@@ -91,8 +91,7 @@ class IndexerFullScan extends Indexer implements Serializable {
    * @param content
    */
   private void processDocument(String content) {
-    Scanner s = new Scanner(content);
-    s.useDelimiter("\t");
+    Scanner s = new Scanner(content).useDelimiter("\t");
 
     String title = s.next();
     Vector<Integer> titleTokens = new Vector<Integer>();
@@ -142,7 +141,6 @@ class IndexerFullScan extends Indexer implements Serializable {
       }
       tokens.add(idx);
     }
-    s.close();
     return;
   }
   
