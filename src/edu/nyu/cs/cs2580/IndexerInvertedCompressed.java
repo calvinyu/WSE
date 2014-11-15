@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -22,7 +21,7 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
 /**
  * @CS2580: Implement this class for HW2.
  */
-public class IndexerInvertedCompressed extends Indexer {
+public class IndexerInvertedCompressed extends Indexer implements Serializable {
   public HashMap<String, Integer> _dictionary = new HashMap<String, Integer>();
   private Vector<String> _terms = new Vector<String>();
   private byte[][] _compressedList;
@@ -80,7 +79,7 @@ public class IndexerInvertedCompressed extends Indexer {
     cnt = 0;
     for (File file : listOfFiles) {
       cnt++;
-      if (cnt == 0) System.out.println(cnt);
+      if (cnt % 100 == 0) System.out.println(cnt);
       createPostingsList(file, docLists, docTermFrequency, postingsList);
     }
 
@@ -126,7 +125,6 @@ public class IndexerInvertedCompressed extends Indexer {
   private void processDocument(File file, Vector<Integer> docFrequency, Vector<Integer> termFrequency) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
-    content = Remove.remove(content);
 
     updateStatistics(content, docFrequency, termFrequency);
   }
@@ -161,7 +159,6 @@ public class IndexerInvertedCompressed extends Indexer {
       throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
-    content = Remove.remove(content);
 
     HashMap<Integer, Vector<Integer>> uniqueTerms = new HashMap<Integer, Vector<Integer>>();
     int docid = _documents.size();
@@ -231,14 +228,12 @@ public class IndexerInvertedCompressed extends Indexer {
    */
   @Override
   public DocumentIndexed nextDoc(Query query, int docid) {
-    System.out.println("size = " + query._tokens.size());
     Vector<Vector<Integer>> nextIdxList = new Vector<Vector<Integer>>();
     Vector<Integer> tmpNextIdx = new Vector<Integer>();
     Vector<Integer> nextList = new Vector<Integer>();
     Vector<Integer> freqList = new Vector<Integer>();
     Vector<String> phrases = new Vector<String>();
     for (String token : query._tokens) {
-      System.out.println(token);
       String[] words = token.split(" ");
       if (words.length > 1) phrases.add(token);
       for (int i = 0; i < words.length; i++) {
@@ -269,7 +264,6 @@ public class IndexerInvertedCompressed extends Indexer {
       }
     }
     int maxId = (int) Collections.max(nextList);
-    System.out.println("maxId: " + maxId);
     if (maxId == Collections.min(nextList)) {
       // check if the document contains the phrases
       Vector<Integer> phraseFreqs = new Vector<Integer>();

@@ -168,7 +168,7 @@ public class SearchEngine {
   ///// Main functionalities start
 
   private static void startMining()
-      throws IOException, NoSuchAlgorithmException {
+      throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
     CorpusAnalyzer analyzer = CorpusAnalyzer.Factory.getCorpusAnalyzerByOption(
         SearchEngine.OPTIONS);
     Check(analyzer != null,

@@ -21,6 +21,7 @@ public class QueryPhrase extends Query {
     while (regexMatcher.find()) {
       if (regexMatcher.group(1) != null) {
         // Add double-quoted string without the quotes
+        System.out.println(regexMatcher.group(1));
         String word = regexMatcher.group(1);
         _tokens.add(regexMatcher.group(1));
       } else if (regexMatcher.group(2) != null) {
