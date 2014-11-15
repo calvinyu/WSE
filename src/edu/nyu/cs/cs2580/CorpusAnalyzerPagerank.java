@@ -43,6 +43,7 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
       docNames.put(file.getName(), docid);
       docid++;
     }
+    _options._docNames = docNames;
     // initialize the adjacency list
     int[][] adjacencyList = new int[docNames.size()][];
     // Construct adjacency list
@@ -104,17 +105,17 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
    */
   @Override
   public void compute() throws IOException, ClassNotFoundException {
-    float lambda = 0.9f;   // TODO: Should be put in the options
-    int iters = 2;   // TODO: Should be put in the options
+    float lambda = _options._lambda;   // TODO: Should be put in the options
+    int iters = _options._numIter;   // TODO: Should be put in the options
     // Load from the file.
     String graphFile = _options._indexPrefix + "/graph.idx";
-    System.out.println("Load number of views from: " + graphFile);
+    System.out.println("Load corpus graph from: " + graphFile);
     ObjectInputStream reader =
         new ObjectInputStream(new FileInputStream(graphFile));
     int[][] invertedAdjacencyList = (int[][]) reader.readObject();
     // Initialize the page rank.
     float[] prevPageRank = new float[invertedAdjacencyList.length];
-    for (int i = 0; i < prevPageRank.length; i++) { prevPageRank[i] = 1.0f / prevPageRank.length; }
+    for (int i = 0; i < prevPageRank.length; i++) { prevPageRank[i] = 1.0f; }
     // Compute the update for page rank
     float[] pageRank = new float[prevPageRank.length];
     for (int i = 0; i < iters; i++) {

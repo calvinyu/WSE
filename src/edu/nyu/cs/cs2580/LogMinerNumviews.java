@@ -37,22 +37,29 @@ public class LogMinerNumviews extends LogMiner {
   @Override
   public void compute() throws IOException {
     File logDir = new File(_options._logPrefix);
-    HashMap<String, Integer> viewsCount = new HashMap<String, Integer>();
+    int[] numviews = new int[_options._docNames.size()];
     for (File file : logDir.listFiles()) {
       BufferedReader reader = new BufferedReader(new FileReader(file));
       String line;
       while ((line = reader.readLine()) != null) {
         String[] lines = line.trim().split(" ");
-        if (!viewsCount.containsKey(lines[1])) viewsCount.put(lines[1], 0);
-        viewsCount.put(lines[1], Integer.parseInt(lines[2]));
+        if (lines.length < 3 || !lines[2].matches("\\d+")) continue;
+        String[] docList = lines[1].split("/");
+        String basename;
+        if (docList.length != 0) basename = docList[docList.length - 1];
+        else basename = lines[1];
+        if (_options._docNames.containsKey(basename)) {
+          numviews[_options._docNames.get(basename)] += Integer.parseInt(lines[2]);
+        }
       }
       reader.close();
     }
+
     String numviewsFile = _options._indexPrefix + "/numviews.idx";
-    System.out.println("Store number of views to: " + numviewsFile);
+    System.out.println("Store page rank to: " + numviewsFile);
     ObjectOutputStream writer =
         new ObjectOutputStream(new FileOutputStream(numviewsFile));
-    writer.writeObject(viewsCount);
+    writer.writeObject(numviews);
     writer.close();
   }
 

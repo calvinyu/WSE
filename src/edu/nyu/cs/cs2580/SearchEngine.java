@@ -70,6 +70,10 @@ public class SearchEngine {
     public String _logMinerType = null;
 
     // Additional group specific configuration can be added below.
+    public float _lambda = 0.9f;
+    public int _numIter = 2;
+    public HashMap<String, Integer> _docNames = null;
+
 
     /**
      * Constructor for options.
