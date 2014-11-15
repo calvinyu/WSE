@@ -100,11 +100,11 @@ public abstract class CorpusAnalyzer {
   // Computes the desired measure based on the internal data structure created
   // by the prepare function above. Store the results to be used by Indexer in
   // the load function below.
-  public abstract void compute() throws IOException;
+  public abstract void compute() throws IOException, ClassNotFoundException;
 
   // Loads the stored analysis results computed by the compute function above.
   // Called during indexing mode.
-  public abstract Object load() throws IOException;
+  public abstract Object load() throws IOException, ClassNotFoundException;
 
   /**
    * All CorpusAnalyzers must be created through this factory class based on

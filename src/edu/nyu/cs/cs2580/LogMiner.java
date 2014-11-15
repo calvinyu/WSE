@@ -1,6 +1,7 @@
 package edu.nyu.cs.cs2580;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import edu.nyu.cs.cs2580.SearchEngine.Options;
 
@@ -27,7 +28,7 @@ public abstract class LogMiner {
 
   // Loads the stored mining results computed by the compute function above.
   // Called during indexing mode.
-  public abstract Object load() throws IOException;
+  public abstract Object load() throws IOException, ClassNotFoundException;
 
   /**
    * All LogMiners must be created through this factory class based on

@@ -1,6 +1,8 @@
 package edu.nyu.cs.cs2580;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Vector;
 
 import edu.nyu.cs.cs2580.SearchEngine.Options;
 
@@ -33,8 +35,58 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
    */
   @Override
   public void prepare() throws IOException {
-    System.out.println("Preparing " + this.getClass().getName());
-    return;
+    // Retrieves the set of documents
+    File corpusDir = new File(_options._corpusPrefix);
+    HashMap<String, Integer> docNames = new HashMap<String, Integer>();
+    int docid = 0;
+    for (File file : corpusDir.listFiles()) {
+      docNames.put(file.getName(), docid);
+      docid++;
+    }
+    // initialize the adjacency list
+    int[][] adjacencyList = new int[docNames.size()][];
+    // Construct adjacency list
+    docid = 0;
+    for (File file : corpusDir.listFiles()) {
+      HeuristicLinkExtractor linkExtractor = new HeuristicLinkExtractor(file);
+      String target;
+      Vector<Integer> tmpTargetList = new Vector<Integer>();
+      while ((target = linkExtractor.getNextInCorpusLinkTarget()) != null) {
+        if (docNames.containsKey(target)) tmpTargetList.add(docNames.get(target));
+      }
+      adjacencyList[docid] = new int[tmpTargetList.size()];
+      for (int i = 0; i < tmpTargetList.size(); i++) {
+        adjacencyList[docid][i] = tmpTargetList.get(i);
+      }
+      docid++;
+    }
+    // Construct inverted adjacency list
+    // First run: Check the number of incoming edges
+    int[] edgeCount = new int[adjacencyList.length];
+    for (int[] list : adjacencyList) {
+      for (int i : list) { edgeCount[i]++; }
+    }
+    // Initialize the inverted adjacency list
+    int[][] invertedAdjacencyList = new int[edgeCount.length][];
+    for (int i = 0; i < edgeCount.length; i++) {
+      invertedAdjacencyList[i] = new int[edgeCount[i]];
+    }
+    edgeCount = new int[adjacencyList.length];
+    // Second run: Create the inverted adjacency list
+    for (int i = 0; i < adjacencyList.length; i++) {
+      for (int j = 0; j < adjacencyList[i].length; j++) {
+        int idx = adjacencyList[i][j];
+        invertedAdjacencyList[idx][edgeCount[idx]] = i;
+        edgeCount[idx]++;
+      }
+    }
+    String graphFile = _options._indexPrefix + "/graph.idx";
+    System.out.println("Store corpus graph to: " + graphFile);
+    ObjectOutputStream writer =
+        new ObjectOutputStream(new FileOutputStream(graphFile));
+    writer.writeObject(invertedAdjacencyList);
+    writer.close();
+    // TODO Possibly, this implementation might yield memory error.
   }
 
   /**
@@ -51,9 +103,36 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
    * @throws IOException
    */
   @Override
-  public void compute() throws IOException {
-    System.out.println("Computing using " + this.getClass().getName());
-    return;
+  public void compute() throws IOException, ClassNotFoundException {
+    float lambda = 0.9f;   // TODO: Should be put in the options
+    int iters = 2;   // TODO: Should be put in the options
+    // Load from the file.
+    String graphFile = _options._indexPrefix + "/graph.idx";
+    System.out.println("Load number of views from: " + graphFile);
+    ObjectInputStream reader =
+        new ObjectInputStream(new FileInputStream(graphFile));
+    int[][] invertedAdjacencyList = (int[][]) reader.readObject();
+    // Initialize the page rank.
+    float[] prevPageRank = new float[invertedAdjacencyList.length];
+    for (int i = 0; i < prevPageRank.length; i++) { prevPageRank[i] = 1.0f / prevPageRank.length; }
+    // Compute the update for page rank
+    float[] pageRank = new float[prevPageRank.length];
+    for (int i = 0; i < iters; i++) {
+      for (int j = 0; j < pageRank.length; j++) {
+        pageRank[j] = (1.0f - lambda) * prevPageRank[j];
+        for (int k : invertedAdjacencyList[j]) {
+          pageRank[j] += lambda * prevPageRank[k];
+        }
+      }
+      // Copy the current page rank to the prevPageRank
+      System.arraycopy(pageRank, 0, prevPageRank, 0, pageRank.length);
+    }
+    String pageRankFile = _options._indexPrefix + "/pagerank.idx";
+    System.out.println("Store page rank to: " + pageRankFile);
+    ObjectOutputStream writer =
+        new ObjectOutputStream(new FileOutputStream(pageRankFile));
+    writer.writeObject(pageRank);
+    writer.close();
   }
 
   /**
@@ -63,8 +142,11 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
    * @throws IOException
    */
   @Override
-  public Object load() throws IOException {
-    System.out.println("Loading using " + this.getClass().getName());
-    return null;
+  public Object load() throws IOException, ClassNotFoundException {
+    String pageRankFile = _options._indexPrefix + "/pagerank.idx";
+    System.out.println("Load page rank from: " + pageRankFile);
+    ObjectInputStream reader =
+        new ObjectInputStream(new FileInputStream(pageRankFile));
+    return reader.readObject();
   }
 }
