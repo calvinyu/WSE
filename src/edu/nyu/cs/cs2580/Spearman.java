@@ -1,3 +1,4 @@
+//package edu.nyu.cs.cs2580; 
 /**
  * @author Calvin Yu
  */ 
@@ -35,13 +36,33 @@ class Spearman {
     }
     System.out.println("Content of " + path  + ":");
     //Storing and printing contents
-    List<Integer> result = new ArrayList<Integer>();
-    while(kb.hasNextInt()){
-      int rank = kb.nextInt();
+    List<Double> result = new ArrayList<Double>();
+    while(kb.hasNextDouble()){
+      double rank = kb.nextDouble();
       result.add(rank);
       System.out.println(rank);
     }
+    return processScore(result);
+  }
+
+  private static List<Integer> processScore(List<Double> score){
+    List<Double> sorted = new ArrayList<Double>();
+    for(double i:score) sorted.add(i);
+    Collections.sort(sorted);
+    List<Integer> result = new ArrayList<Integer>();
+    for(double i:score) result.add(bs(sorted, i));
     return result;
+  }
+
+  private static int bs(List<Double> list, double target){
+    int low = 0;
+    int high = list.size() - 1;
+    while(low<=high){
+      int m = (high+low)/2;
+      if(list.get(m)>=target) high = m - 1;
+      else if(list.get(m)<target) low = m + 1;
+    }
+    return low;
   }
 
   private static double calculateCorrelation(
@@ -51,6 +72,7 @@ class Spearman {
     double z;
     //check length
     if(r1.size() != r2.size() || r1.size() == 0){
+      System.out.println("Length 1: " + r1.size() + ", Length 2: " + r2.size());
       System.out.println("Length doesn't match or equals zero");
       return -1;
     }
