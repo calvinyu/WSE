@@ -60,6 +60,7 @@ class Document implements Serializable {
   }
 
   public int _docid;
+  protected int _length;
 
   // Basic information for display
   private String _title = "";

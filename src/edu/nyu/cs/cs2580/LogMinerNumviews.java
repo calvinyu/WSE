@@ -1,6 +1,14 @@
 package edu.nyu.cs.cs2580;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.HashMap;
 
 import edu.nyu.cs.cs2580.SearchEngine.Options;
 
@@ -28,8 +36,31 @@ public class LogMinerNumviews extends LogMiner {
    */
   @Override
   public void compute() throws IOException {
-    System.out.println("Computing using " + this.getClass().getName());
-    return;
+    File logDir = new File(_options._logPrefix);
+    int[] numviews = new int[_options._docNames.size()];
+    for (File file : logDir.listFiles()) {
+      BufferedReader reader = new BufferedReader(new FileReader(file));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        String[] lines = line.trim().split(" ");
+        if (lines.length < 3 || !lines[2].matches("\\d+")) continue;
+        String[] docList = lines[1].split("/");
+        String basename;
+        if (docList.length != 0) basename = docList[docList.length - 1];
+        else basename = lines[1];
+        if (_options._docNames.containsKey(basename)) {
+          numviews[_options._docNames.get(basename)] += Integer.parseInt(lines[2]);
+        }
+      }
+      reader.close();
+    }
+
+    String numviewsFile = _options._indexPrefix + "/numviews.idx";
+    System.out.println("Store page rank to: " + numviewsFile);
+    ObjectOutputStream writer =
+        new ObjectOutputStream(new FileOutputStream(numviewsFile));
+    writer.writeObject(numviews);
+    writer.close();
   }
 
   /**
@@ -39,8 +70,12 @@ public class LogMinerNumviews extends LogMiner {
    * @throws IOException
    */
   @Override
-  public Object load() throws IOException {
-    System.out.println("Loading using " + this.getClass().getName());
-    return null;
+  @SuppressWarnings("unchecked")
+  public Object load() throws IOException, ClassNotFoundException {
+    String numviewsFile = _options._indexPrefix + "/numviews.idx";
+    System.out.println("Load number of views from: " + numviewsFile);
+    ObjectInputStream reader =
+        new ObjectInputStream(new FileInputStream(numviewsFile));
+    return reader.readObject();
   }
 }
