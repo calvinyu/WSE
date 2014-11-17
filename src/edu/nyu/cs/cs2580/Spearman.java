@@ -1,4 +1,4 @@
-//package edu.nyu.cs.cs2580; 
+package edu.nyu.cs.cs2580; 
 /**
  * @author Calvin Yu
  */ 
@@ -26,6 +26,15 @@ class Spearman {
 
   //Assume the input contains only Integers
   private static List<Integer> readFromFile(String path){
+    List<Double> result = new ArrayList<Double>();
+    try{
+      ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
+      float [] b = (float[]) ois.readObject();
+      for(float f:b) result.add((double)f);
+    }
+    catch(Exception e){};
+    return processScore(result);
+    /*
     //Open File
     try{
       kb = new Scanner(new File(path));
@@ -38,33 +47,34 @@ class Spearman {
     //Storing and printing contents
     List<Double> result = new ArrayList<Double>();
     while(kb.hasNextDouble()){
-      double rank = kb.nextDouble();
+      Double rank = kb.nextDouble();
       result.add(rank);
       System.out.println(rank);
     }
+    System.out.println("End of content");
     return processScore(result);
+    */
   }
 
   private static List<Integer> processScore(List<Double> score){
     List<Double> sorted = new ArrayList<Double>();
-    for(double i:score) sorted.add(i);
+    for(Double i:score) sorted.add(i);
     Collections.sort(sorted);
     List<Integer> result = new ArrayList<Integer>();
-    for(double i:score) result.add(bs(sorted, i));
+    for(Double i:score) result.add(bs(sorted, i));
     return result;
   }
 
-  private static int bs(List<Double> list, double target){
+  private static int bs(List<Double> list, Double target){
     int low = 0;
     int high = list.size() - 1;
     while(low<=high){
       int m = (high+low)/2;
-      if(list.get(m)>=target) high = m - 1;
-      else if(list.get(m)<target) low = m + 1;
+      if(list.get(m) >= target) high = m - 1;
+      else if(list.get(m) < target) low = m + 1;
     }
     return low;
   }
-
   private static double calculateCorrelation(
           List<Integer> r1, List<Integer> r2){
     //initialization
