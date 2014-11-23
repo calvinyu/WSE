@@ -4,6 +4,7 @@ package edu.nyu.cs.cs2580;
  */ 
 import java.util.*;
 import java.io.*;
+import java.lang.*;
 class Spearman {
   static List<Integer> pageRankList;
   static List<Integer> numViewList;
@@ -104,6 +105,6 @@ class Spearman {
         x2 += a*a;
         y2 += b*b;
     }
-    return inner/(x2*y2);
+    return inner/(Math.sqrt(x2*y2));
   }
 }

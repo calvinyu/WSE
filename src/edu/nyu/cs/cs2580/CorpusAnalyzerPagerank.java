@@ -61,6 +61,8 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
       }
       docid++;
     }
+    //handle redirect
+    handleRedirect(adjacencyList, docNames);
     String graphFile = _options._indexPrefix + "/graph.idx";
     System.out.println("Store corpus graph to: " + graphFile);
     ObjectOutputStream writer =
@@ -68,6 +70,38 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
     writer.writeObject(adjacencyList);
     writer.close();
     // TODO Possibly, this implementation might yield memory error.
+  }
+  /**
+   * This function modifies the redirected links to their final destination.
+   **/
+  private void handleRedirect(int[][] adjacencyList, HashMap<String, Integer> docNames)
+   throws IOException{
+    //read files
+    File corpusDir = new File(_options._corpusPrefix);
+    //set links to -1 if it's not a redirect page
+    int links[] = new int[docNames.size()];
+    for(int i=0; i<links.length; ++i) links[i] = -1;
+    int docid = 0;
+    //look into the file to see if it's a redirect file
+    for (File file : corpusDir.listFiles()) {
+      HeuristicLinkExtractor linkExtractor = new HeuristicLinkExtractor(file);
+      String target = linkExtractor.getRedirectedTarget();
+      if(target != null) links[docid] = docNames.get(target);
+      docid++;
+    }
+    //points all redirecttion to the correct page
+    for(int i=0; i<links.length; ++i) if(links[i]!= -1) links[i] = dfs(links, i);
+    //modify adj
+    for(int i=0; i<adjacencyList.length; ++i){
+      for(int j=0; j<adjacencyList[i].length; ++j){
+        if(links[adjacencyList[i][j]] != -1 ) adjacencyList[i][j] = links[adjacencyList[i][j]];
+      }
+    }
+  }
+  
+  private int dfs(int[] links, int index) {
+    if(links[index] == -1) return index;
+    return links[index] = dfs(links, links[index]);
   }
 
   /**
