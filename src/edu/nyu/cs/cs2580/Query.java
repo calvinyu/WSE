@@ -18,7 +18,7 @@ public class Query {
   public Vector<String> _tokens = new Vector<String>();
 
   public Query(String query) {
-    _query = query.replace('+', ' ');
+    _query = query.toLowerCase().replace('+', ' ');
   }
 
   public void processQuery() {
