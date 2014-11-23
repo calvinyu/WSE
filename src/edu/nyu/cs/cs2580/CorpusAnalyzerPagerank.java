@@ -61,31 +61,11 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
       }
       docid++;
     }
-    // Construct inverted adjacency list
-    // First run: Check the number of incoming edges
-    int[] edgeCount = new int[adjacencyList.length];
-    for (int[] list : adjacencyList) {
-      for (int i : list) { edgeCount[i]++; }
-    }
-    // Initialize the inverted adjacency list
-    int[][] invertedAdjacencyList = new int[edgeCount.length][];
-    for (int i = 0; i < edgeCount.length; i++) {
-      invertedAdjacencyList[i] = new int[edgeCount[i]];
-    }
-    edgeCount = new int[adjacencyList.length];
-    // Second run: Create the inverted adjacency list
-    for (int i = 0; i < adjacencyList.length; i++) {
-      for (int j = 0; j < adjacencyList[i].length; j++) {
-        int idx = adjacencyList[i][j];
-        invertedAdjacencyList[idx][edgeCount[idx]] = i;
-        edgeCount[idx]++;
-      }
-    }
     String graphFile = _options._indexPrefix + "/graph.idx";
     System.out.println("Store corpus graph to: " + graphFile);
     ObjectOutputStream writer =
         new ObjectOutputStream(new FileOutputStream(graphFile));
-    writer.writeObject(invertedAdjacencyList);
+    writer.writeObject(adjacencyList);
     writer.close();
     // TODO Possibly, this implementation might yield memory error.
   }
@@ -112,17 +92,17 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
     System.out.println("Load corpus graph from: " + graphFile);
     ObjectInputStream reader =
         new ObjectInputStream(new FileInputStream(graphFile));
-    int[][] invertedAdjacencyList = (int[][]) reader.readObject();
+    int[][] adjacencyList = (int[][]) reader.readObject();
     // Initialize the page rank.
-    float[] prevPageRank = new float[invertedAdjacencyList.length];
-    for (int i = 0; i < prevPageRank.length; i++) { prevPageRank[i] = 1.0f; }
+    float[] prevPageRank = new float[adjacencyList.length];
+    for (int i = 0; i < prevPageRank.length; i++) { prevPageRank[i] = 1.0f / prevPageRank.length; }
     // Compute the update for page rank
     float[] pageRank = new float[prevPageRank.length];
     for (int i = 0; i < iters; i++) {
+      for (int j = 0; j < pageRank.length; j++) { pageRank[j] = (1.0f - lambda) / pageRank.length; }
       for (int j = 0; j < pageRank.length; j++) {
-        pageRank[j] = (1.0f - lambda) * prevPageRank[j];
-        for (int k : invertedAdjacencyList[j]) {
-          pageRank[j] += lambda * prevPageRank[k];
+        for (int k : adjacencyList[j]) {
+          pageRank[k] += lambda * prevPageRank[j] / adjacencyList[j].length;
         }
       }
       // Copy the current page rank to the prevPageRank
