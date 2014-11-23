@@ -40,7 +40,6 @@ public class RankerFavorite extends Ranker {
   }
 
   public ScoredDocument runQuery(Query query, Document doc){
-    //System.out.println("running query");
     Vector<Double> lmprob = new Vector<Double>();
     createLmprob(doc, query, 0.5, lmprob);
     double score = language_model_score(lmprob);

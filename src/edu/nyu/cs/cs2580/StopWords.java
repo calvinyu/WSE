@@ -11,8 +11,8 @@ class StopWords {
    * param s: stopword candidate
    * @returns true if s is a stopword
    */
-  private static boolean isStopWord(String s){
-    if( set == null ) readStopWords("data/stopwords/stopwords.txt");
+  public static boolean isStopWord(String s){
+    if( set == null ) set = readStopWords("data/stopwords/stopwords.txt");
     return set.contains(s);
   }
 
@@ -20,7 +20,7 @@ class StopWords {
    * param s: stopword phrase candidate
    * @returns stopwords stripped phrase
    */
-  private static String removeBadWord(String s){
+  public static String removeBadWord(String s){
     String ret = "";
     String[] res = s.split(" ");
     boolean first = true;
@@ -46,14 +46,13 @@ class StopWords {
     }
     catch(Exception e){
       System.out.println("File open failed:" + filePath);
-    };
-     Set<String> set = new TreeSet<String>();
-     while(scanner.hasNextLine()){
-       String word = scanner.nextLine();
-       System.out.println(word);
-       set.add(word);
-     }
-     scanner.close();
+    }
+    Set<String> set = new TreeSet<String>();
+    while(scanner.hasNextLine()){
+      String word = scanner.nextLine();
+      set.add(word);
+    }
+    scanner.close();
     return set;
   }
 }
