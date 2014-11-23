@@ -35,18 +35,24 @@ public abstract class CorpusAnalyzer {
   protected static class HeuristicLinkExtractor {
     private static final Pattern LINK_PATTERN =
         Pattern.compile("<[a|A].*?href=\"([^ /#]*)\".*?>");
-
+    private static final Pattern REDIRECT_PATTERN = 
+        Pattern.compile("<meta.*http-equiv.*refresh.*url=([^ /#]*)\".*?>");
     private String _linkSource = null;
     private BufferedReader _reader = null;
+    private BufferedReader _reader_r = null;
     private Matcher _matcher = null;
+    private Matcher _matehcer_r = null;
 
     // Constructs the extractor based on the content of the provided file.
     public HeuristicLinkExtractor(File file) throws IOException {
       _linkSource = file.getName();
       _reader = new BufferedReader(new FileReader(file));
+      _reader_r = new BufferedReader(new FileReader(file));
       String line = _reader.readLine();
+      String line_r = _reader.readLine();
       if (line != null) {
         _matcher = LINK_PATTERN.matcher(line);
+        _matehcer_r = REDIRECT_PATTERN.matcher(line_r);
       }
     }
 
@@ -79,7 +85,35 @@ public abstract class CorpusAnalyzer {
       }
       return linkTarget;
     }
-  };
+
+      /**
+   * return the target file name if exists, else return null
+   */
+  public String getRedirectedTarget() throws IOException {
+    if (_matehcer_r == null) {  // Not initialized
+      return null;
+    }
+    String linkTarget = null;
+    while (linkTarget == null) {
+      if (_matehcer_r.find()) {
+        if ((linkTarget = _matehcer_r.group(1)) != null) {
+          System.out.printf("%s is a link to %s\n", getLinkSource(), linkTarget);
+          return linkTarget;
+        }
+      }
+      String line = _reader_r.readLine();
+      if (line == null) {  // End of file
+        _matehcer_r = null;
+        _reader_r.close();
+        break;
+      }
+      _matehcer_r = REDIRECT_PATTERN.matcher(line);
+    }
+    return linkTarget;
+  }
+};
+
+
 
   // Utility for ignoring hidden files in the file system.
   protected static boolean isValidDocument(File file) {

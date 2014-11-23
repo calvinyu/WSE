@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--[if IE 8]> <html class="lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>No.13 Search Engine</title>
+  <script src="js/jquery-1.9.1.js"></script>
+  <script>
+  $(document).ready(function(){
+    $('#back').hide();
+    $('#input_field').hide();
+    $('#backToSearch').css({'cursor': 'pointer', 'text-decoration': 'underline'});
+    
+    $('#cont_go').click(function(){
+      if($('#cont_query').val().length==0){
+    	  $('#cont_query').css("border","5px solid red");
+    	  $('#cont_query').attr("placeholder","Query can't be empty :)");
+      } else {
+      var encode_uri = 'http://localhost:25813/search?' + encodeURIComponent('query='+
+      $('#cont_query').val() + '&ranker=favorite&format=html');
+      $('#result').load(encode_uri);
+      }
+    });
+  
+    $('#go').click(function(){
+        if($('#query').val().length==0){
+      	  $('#query').css("border","5px solid red");
+      	  $('#query').attr("placeholder","Query can't be empty :)");
+        } else {
+        var encode_uri = 'http://localhost:25813/search?' + encodeURIComponent('query='+
+        $('#query').val() + '&ranker=favorite&format=html');
+        $('#result').load(encode_uri);
+        $('#gogogo').slideUp();
+        $('#result').slideDown();
+        $('#back').show();
+        $('#input_field').slideDown();
+        }
+      });
+      
+    $('.login-input').click(function(){
+    	$(this).css("border", "1px solid #172b4e");
+    	$(this).attr("placeholder","");
+    });
+    
+    $('#backToSearch').click(function(){
+      $('#result').slideUp();
+      $('#gogogo').slideDown();
+      $('#back').hide();
+      $('#input_field').slideUp();
+    }).css("cursor","pointer");
+  });
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <form id="gogogo" class="login">
+    <h1>No.13 Search Engine</h1>
+    <br><br><br><br><br><br>
+    <input type="text" id="query" class="login-input" 
+    	placeholder="what do you want today" autofocus>
+    <input id="go" type="button" value="Go!" class="login-submit"><br><br>
+    <p class="login-statement">web design by Joshua</p>
+  </form>
+  
+  <div id="input_field" style="margin-top:30px;">
+  <input type="text" id="cont_query" class="login-input"
+  style="width:30%; float:left" autofocus>
+  <input id="cont_go" type="button" value="Go!" class="login-submit" 
+  style="width:8%; float:left; margin-left:20px">
+  </div>
+  <div id="result" style="text-align:left; clear:both"></div>
+  <div id="back" style="margin-top:100px">
+ 	<label id="backToSearch">Back to Home Page</label>
+  </div>
+</body>
+</html>
