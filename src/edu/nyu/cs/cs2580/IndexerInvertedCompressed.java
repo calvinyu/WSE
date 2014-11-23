@@ -147,11 +147,8 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
 		  Vector<Integer> termFrequency) {
     HashSet<Integer> uniqueTerms = new HashSet<Integer>();
     Scanner s = new Scanner(content);  // Uses white space by default.
-    Stopwords stopwords = new Stopwords();
     while (s.hasNext()) {
       String word = s.next();
-      if (stopwords.wordsList.contains(word) || word.length() < 3 || word.length() > 20)
-		  continue;
       int idx;
       if (_dictionary.containsKey(word)) {
         idx = _dictionary.get(word);
@@ -186,13 +183,10 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     _documents.add(doc);
 
     Scanner s = new Scanner(content);  // Uses white space by default.
-    Stopwords stopwords = new Stopwords();
     int offset = 0;
     int docsize = 0;
     while (s.hasNext()) {
       String word = s.next();
-      if (stopwords.wordsList.contains(word) || word.length() < 3 || word.length() > 20)
-		  continue;
       int idx = _dictionary.get(word);
       if (!uniqueTerms.containsKey(idx)) uniqueTerms.put(idx, new Vector<Integer>());
       uniqueTerms.get(idx).add(offset);
