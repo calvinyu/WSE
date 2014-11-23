@@ -8,10 +8,18 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,10 +31,12 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
  */
 public class IndexerInvertedCompressed extends Indexer implements Serializable {
   public HashMap<String, Integer> _dictionary = new HashMap<String, Integer>();
-  private Vector<String> _terms = new Vector<String>();
+  public Vector<String> _terms = new Vector<String>();
   private byte[][] _compressedList;
   private int[] _termDocFrequency;
   public int[] _termCorpusFrequency;
+  // _docBody[i] is an array of {term,time,term,time} of doc i
+  public int[][] _docBody;
   public HashMap<Integer, Vector<Integer>> _tmpPostingsList = new HashMap<Integer, Vector<Integer>>();
   public HashMap<Integer, Vector<Integer>> _tmpDocList = new HashMap<Integer, Vector<Integer>>();
   public HashMap<Integer, Vector<Integer>> _tmpDocTermFrequency = new HashMap<Integer, Vector<Integer>>();
@@ -50,9 +60,10 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     int cnt = 0;
     for (File file : listOfFiles) {
       cnt++;
-      if (cnt % 100 == 0) System.out.println(cnt);
+      if (cnt % 1000 == 0) System.out.println(cnt);
       processDocument(file, tmpTermDocFrequency, tmpTermCorpusFrequency);
     }
+    _numDocs = cnt;
     // Put tmp values into arrays.
     _termDocFrequency = new int[_terms.size()];
     _termCorpusFrequency = new int[_terms.size()];
@@ -76,10 +87,12 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
 
     // Second run : Create the postings list
     System.out.println("Second run");
+    // we know the number of docs, so initialize the docBody
+    _docBody = new int[_numDocs][40];
     cnt = 0;
     for (File file : listOfFiles) {
       cnt++;
-      if (cnt % 100 == 0) System.out.println(cnt);
+      if (cnt % 1000 == 0) System.out.println(cnt);
       createPostingsList(file, docLists, docTermFrequency, postingsList);
     }
 
@@ -122,18 +135,23 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     writer.close();
   }
 
-  private void processDocument(File file, Vector<Integer> docFrequency, Vector<Integer> termFrequency) throws IOException {
+  private void processDocument(File file, Vector<Integer> docFrequency, 
+		  Vector<Integer> termFrequency) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
-
+    content = Remove.remove(content);
     updateStatistics(content, docFrequency, termFrequency);
   }
 
-  private void updateStatistics(String content, Vector<Integer> docFrequency, Vector<Integer> termFrequency) {
+  private void updateStatistics(String content, Vector<Integer> docFrequency, 
+		  Vector<Integer> termFrequency) {
     HashSet<Integer> uniqueTerms = new HashSet<Integer>();
     Scanner s = new Scanner(content);  // Uses white space by default.
+    Stopwords stopwords = new Stopwords();
     while (s.hasNext()) {
       String word = s.next();
+      if (stopwords.wordsList.contains(word) || word.length() < 3 || word.length() > 20)
+		  continue;
       int idx;
       if (_dictionary.containsKey(word)) {
         idx = _dictionary.get(word);
@@ -155,23 +173,26 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     }
   }
 
-  private void createPostingsList(File file, int[][] docLists, int[][] docTermFrequency, int[][] postingsList)
-      throws IOException {
+  private void createPostingsList(File file, int[][] docLists, int[][] docTermFrequency, 
+		  int[][] postingsList) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
-
+    content = Remove.remove(content);
+    
     HashMap<Integer, Vector<Integer>> uniqueTerms = new HashMap<Integer, Vector<Integer>>();
     int docid = _documents.size();
     DocumentIndexed doc = new DocumentIndexed(_documents.size(), this);
     doc.setTitle(file.getName());
     _documents.add(doc);
-    _numDocs++;
 
     Scanner s = new Scanner(content);  // Uses white space by default.
+    Stopwords stopwords = new Stopwords();
     int offset = 0;
     int docsize = 0;
     while (s.hasNext()) {
       String word = s.next();
+      if (stopwords.wordsList.contains(word) || word.length() < 3 || word.length() > 20)
+		  continue;
       int idx = _dictionary.get(word);
       if (!uniqueTerms.containsKey(idx)) uniqueTerms.put(idx, new Vector<Integer>());
       uniqueTerms.get(idx).add(offset);
@@ -180,6 +201,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     }
     doc.setLength(docsize);
     s.close();
+    // put the offsets into postingsList
     for (int i : uniqueTerms.keySet()) {
       docLists[i][_termDocFrequency[i]] = docid;
       docTermFrequency[i][_termDocFrequency[i]] = uniqueTerms.get(i).size();
@@ -189,6 +211,40 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
         _termCorpusFrequency[i]++;
       }
     }
+    
+    // actually uniqueTerms has information about terms, can use it to compute docBody
+    // hm stores the number of appearances of terms
+    HashMap<Integer,Integer> hm = new HashMap<Integer,Integer>();
+    for(int i : uniqueTerms.keySet()){
+    	hm.put(i, uniqueTerms.get(i).size());
+    }
+    hm = sortByValues(hm);
+    // put top 20 terms into the docBody
+    Set<Entry<Integer, Integer>> set = hm.entrySet();
+    Iterator<Entry<Integer, Integer>> iterator = set.iterator();
+    for(int i=0;i<20 && iterator.hasNext();i++){
+    	Entry<Integer,Integer> me = iterator.next();
+    	_docBody[_documents.size()-1][2*i] = me.getKey();
+    	_docBody[_documents.size()-1][2*i+1] = me.getValue();
+    }
+  }
+  
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private HashMap<Integer,Integer> sortByValues(HashMap map) { 
+      List list = new LinkedList(map.entrySet());
+      // Defined Comparator here
+      Collections.sort(list, new Comparator() {
+           public int compare(Object o1, Object o2) {
+              return ((Comparable) ((Map.Entry) (o2)).getValue())
+                 .compareTo(((Map.Entry) (o1)).getValue());
+           }
+      });
+      HashMap sortedHashMap = new LinkedHashMap();
+      for (Iterator it = list.iterator(); it.hasNext();) {
+             Map.Entry entry = (Map.Entry) it.next();
+             sortedHashMap.put(entry.getKey(), entry.getValue());
+      } 
+      return sortedHashMap;
   }
 
   @Override
@@ -210,6 +266,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     this._compressedList = loaded._compressedList;
     this._dictionary = loaded._dictionary;
     this._terms = loaded._terms;
+    this._docBody = loaded._docBody;
     this._termCorpusFrequency = loaded._termCorpusFrequency;
     this._termDocFrequency = loaded._termDocFrequency;
     reader.close();
