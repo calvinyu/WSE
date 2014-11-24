@@ -97,7 +97,7 @@ public abstract class CorpusAnalyzer {
     while (linkTarget == null) {
       if (_matehcer_r.find()) {
         if ((linkTarget = _matehcer_r.group(1)) != null) {
-          System.out.printf("%s is a link to %s\n", getLinkSource(), linkTarget);
+          //System.out.printf("%s is a link to %s\n", getLinkSource(), linkTarget);
           return linkTarget;
         }
       }
