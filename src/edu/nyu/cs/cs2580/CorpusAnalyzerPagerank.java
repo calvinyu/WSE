@@ -83,26 +83,26 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
     for(int i=0; i<links.length; ++i) links[i] = -1;
     int docid = 0;
     //look into the file to see if it's a redirect file
-    System.out.println("getting redirection");
+    //System.out.println("getting redirection");
     for (File file : corpusDir.listFiles()) {
       HeuristicLinkExtractor linkExtractor = new HeuristicLinkExtractor(file);
       String target = linkExtractor.getRedirectedTarget();
       if(target != null && docNames.containsKey(target)) links[docid] = docNames.get(target);
       docid++;
     }
-    System.out.println("done getting redirection");
+    //System.out.println("done getting redirection");
     //points all redirecttion to the correct page
-    System.out.println("DFS starting");
+    //System.out.println("DFS starting");
     for(int i=0; i<links.length; ++i) if(links[i]!= -1) links[i] = dfs(links, i);
-    System.out.println("DFS ending");
+    //System.out.println("DFS ending");
     //modify adj
-    System.out.println("modifying redirection...");
+    //System.out.println("modifying redirection...");
     for(int i=0; i<adjacencyList.length; ++i){
       for(int j=0; j<adjacencyList[i].length; ++j){
         if(links[adjacencyList[i][j]] != -1 ) adjacencyList[i][j] = links[adjacencyList[i][j]];
       }
     }
-    System.out.println("done modifying redirection");
+    //System.out.println("done modifying redirection");
   }
   
   private int dfs(int[] links, int index) {
@@ -134,6 +134,8 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
     ObjectInputStream reader =
         new ObjectInputStream(new FileInputStream(graphFile));
     int[][] adjacencyList = (int[][]) reader.readObject();
+    //Test
+    System.out.printf("lambda=%.3f, iter=%d\n", lambda, iters);
     // Initialize the page rank.
     float[] prevPageRank = new float[adjacencyList.length];
     for (int i = 0; i < prevPageRank.length; i++) { prevPageRank[i] = 1.0f / prevPageRank.length; }
