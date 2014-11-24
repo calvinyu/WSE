@@ -21,4 +21,9 @@ Instructions
   $ java -cp src:lib/jsoup-1.8.1.jar edu.nyu.cs.cs2580.SearchEngine --mode=serve --options=conf/engine.conf --port=25813<br><br>
   </ul>
 </li>
+<li> Spearman coefficient<br>
+$ java -cp src edu.nyu.cs.cs2580.Spearman data/index/pagerank.idx data/index/numviews.idx<br>
+
+</li>
 </ol>
+

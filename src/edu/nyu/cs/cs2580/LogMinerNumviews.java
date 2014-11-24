@@ -49,7 +49,10 @@ public class LogMinerNumviews extends LogMiner {
         if (docList.length != 0) basename = docList[docList.length - 1];
         else basename = lines[1];
         if (_options._docNames.containsKey(basename)) {
-          numviews[_options._docNames.get(basename)] += Integer.parseInt(lines[2]);
+          if(_options._docNames.containsKey(basename+".html"))
+            numviews[_options._docNames.get(basename+".html")] += Integer.parseInt(lines[2]);
+          else
+            numviews[_options._docNames.get(basename)] += Integer.parseInt(lines[2]);
         }
       }
       reader.close();
