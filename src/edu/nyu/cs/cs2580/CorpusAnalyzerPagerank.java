@@ -63,6 +63,8 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
     }
     //handle redirect
     handleRedirect(adjacencyList, docNames);
+    File parentDir = new File(_options._indexPrefix);
+    if (!parentDir.exists()) parentDir.mkdir();
     String graphFile = _options._indexPrefix + "/graph.idx";
     System.out.println("Store corpus graph to: " + graphFile);
     ObjectOutputStream writer =
@@ -151,6 +153,8 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
       // Copy the current page rank to the prevPageRank
       System.arraycopy(pageRank, 0, prevPageRank, 0, pageRank.length);
     }
+    File parentDir = new File(_options._indexPrefix);
+    if (!parentDir.exists()) parentDir.mkdir();
     String pageRankFile = _options._indexPrefix + "/pagerank.idx";
     System.out.println("Store page rank to: " + pageRankFile);
     ObjectOutputStream writer =
