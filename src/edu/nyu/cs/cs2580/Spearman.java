@@ -18,7 +18,7 @@ class Spearman {
     }
     //read
     pageRankList = readFromFile(args[0]);
-    numViewList = readFromFile(args[1]); 
+    numViewList = readIntFromFile(args[1]); 
     if(pageRankList == null || numViewList == null) return;
     //calculate
     double result = calculateCorrelation(pageRankList, numViewList);
@@ -26,12 +26,25 @@ class Spearman {
   }
 
   //Assume the input contains only Integers
-  private static List<Integer> readFromFile(String path){
+  private static List<Integer> readIntFromFile(String path){
     List<Double> result = new ArrayList<Double>();
     try{
       ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
+      int [] b = (int[]) ois.readObject();
+      for(int f:b) result.add((double)f);
+    }
+    catch(Exception e){};
+    return processScore(result);
+  }
+  //Assume the input contains only Integers
+  private static List<Integer> readFromFile(String path){
+    List<Double> result = new ArrayList<Double>();
+    try{
+      double sum = 0;
+      ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
       float [] b = (float[]) ois.readObject();
-      for(float f:b) result.add((double)f);
+      for(float f:b) {result.add((double)f); sum+=(double)(f);};
+      System.out.println("sum: " + sum);
     }
     catch(Exception e){};
     return processScore(result);

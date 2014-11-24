@@ -107,7 +107,8 @@ public class CorpusAnalyzerPagerank extends CorpusAnalyzer {
   
   private int dfs(int[] links, int index) {
     if(links[index] == -1) return index;
-    return links[index] = dfs(links, links[index]);
+    links[index] = dfs(links, links[index]);
+    return links[index];
   }
 
   /**
