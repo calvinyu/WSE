@@ -58,6 +58,8 @@ public class LogMinerNumviews extends LogMiner {
       reader.close();
     }
 
+    File parentDir = new File(_options._indexPrefix);
+    if (!parentDir.exists()) parentDir.mkdir();
     String numviewsFile = _options._indexPrefix + "/numviews.idx";
     System.out.println("Store page rank to: " + numviewsFile);
     ObjectOutputStream writer =

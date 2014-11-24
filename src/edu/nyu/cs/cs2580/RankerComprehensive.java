@@ -48,7 +48,7 @@ public class RankerComprehensive extends RankerFavorite {
       double score = beta[0] * scoredDoc.getScore();
       float pr = pageRank[docid];
       int nv = numviews[docid];
-      scoredDoc.setScore(beta[0] * scoredDoc.getScore() + beta[1] * pr + beta[2] * Math.log(nv));
+      scoredDoc.setScore(beta[0] * scoredDoc.getScore() + beta[1] * pr + beta[2] * Math.log(nv + 1));
       scoredDoc.setPagerank(pr);
       scoredDoc.setNumviews(nv);
       retrieval_results.add(scoredDoc);

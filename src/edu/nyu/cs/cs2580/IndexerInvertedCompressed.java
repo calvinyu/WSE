@@ -17,9 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.Vector;
-import java.util.Map.Entry;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -145,6 +143,8 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
         "Indexed " + Integer.toString(_numDocs) + " docs with " +
             Long.toString(_totalTermFrequency) + " terms.");
 
+    File parentDir = new File(_options._indexPrefix);
+    if (!parentDir.exists()) parentDir.mkdir();
     String indexFile = _options._indexPrefix + "/corpus.idx";
     System.out.println("Store index to: " + indexFile);
     ObjectOutputStream writer =
