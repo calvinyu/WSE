@@ -1,18 +1,10 @@
 package edu.nyu.cs.cs2580;
 
+import java.lang.Math;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
 import java.util.Vector;
-import java.util.Map.Entry;
 
 import edu.nyu.cs.cs2580.QueryHandler.CgiArguments;
 import edu.nyu.cs.cs2580.SearchEngine.Options;
@@ -22,9 +14,8 @@ import edu.nyu.cs.cs2580.SearchEngine.Options;
  * from HW2. The new Ranker should now combine both term features and the
  * document-level features including the PageRank and the NumViews. 
  */
-public class RankerComprehensive {
-  /*
-  private Double[] beta = {1., 0.01, 0.0001};
+public class RankerComprehensive extends RankerFavorite {
+  private Double[] beta = {0.1, 100., 0.01};
 
   public RankerComprehensive(Options options,
       CgiArguments arguments, Indexer indexer) {
@@ -57,7 +48,7 @@ public class RankerComprehensive {
       double score = beta[0] * scoredDoc.getScore();
       float pr = pageRank[docid];
       int nv = numviews[docid];
-      scoredDoc.setScore(beta[0] * scoredDoc.getScore() + beta[1] * pr + beta[2] * nv);
+      scoredDoc.setScore(beta[0] * scoredDoc.getScore() + beta[1] * pr + beta[2] * Math.log(nv));
       scoredDoc.setPagerank(pr);
       scoredDoc.setNumviews(nv);
       retrieval_results.add(scoredDoc);
@@ -65,68 +56,11 @@ public class RankerComprehensive {
     }
     Collections.sort(retrieval_results);
     Collections.reverse(retrieval_results);
-    Vector<ScoredDocument> tenResult = new Vector<ScoredDocument>();
+    Vector<ScoredDocument> topResults = new Vector<ScoredDocument>();
     List<ScoredDocument> list;
-    list = retrieval_results.subList(0, Math.min(10, retrieval_results.size()));
-    for(ScoredDocument s : list) tenResult.add(s);
-    return tenResult;
-  }
-
-  private String expandQuery(Vector<ScoredDocument> docs, String query,
-                            int numDocs, int numTerms) {
-    // dictionary contains all words and their count
-    HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
-    // get top docs
-    for(int i=0; i<numDocs; i++){
-      int docid = docs.get(i).getDoc()._docid;
-      for (int j=0;j<20;j++){
-        // get the term by looking up _terms
-        String term =((IndexerInvertedCompressed) _indexer)._terms.get(
-            ((IndexerInvertedCompressed) _indexer)._docBody[docid][2*j]);
-        // get the number of appearances
-        int count = ((IndexerInvertedCompressed) _indexer)._docBody[docid][2*j+1];
-        // if exists, add the count, else create an entry
-        if(dictionary.containsKey(term)){
-          dictionary.put(term, dictionary.get(term)+count);
-        } else dictionary.put(term, count);
-      }
-    }
-
-    // get top terms
-    dictionary = sortByValues(dictionary);
-    Set<Entry<String, Integer>> set = dictionary.entrySet();
-    Iterator<Entry<String, Integer>> iterator = set.iterator();
-    int totalFrequency = 0;
-    for (int i=0; i<numTerms; i++) {
-      Entry<String,Integer> me = iterator.next();
-      totalFrequency += me.getValue();
-    }
-
-    // write results into a string to return to user
-    String result = "";
-    iterator = set.iterator();
-    for (int i=0; i<numTerms; i++) {
-      Entry<String,Integer> me = iterator.next();
-      result += (me.getKey() + "\t" + (double) me.getValue()/totalFrequency + "\n");
-    }
-    return result;
-  }
-  
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  private HashMap<String,Integer> sortByValues(HashMap map) { 
-    List list = new LinkedList(map.entrySet());
-    // Defined Comparator here
-    Collections.sort(list, new Comparator() {
-      public int compare(Object o1, Object o2) {
-        return ((Comparable) ((Map.Entry) (o2)).getValue()).compareTo(((Map.Entry) (o1)).getValue());
-      }
-    });
-    HashMap sortedHashMap = new LinkedHashMap();
-    for (Iterator it = list.iterator(); it.hasNext();) {
-      Map.Entry entry = (Map.Entry) it.next();
-      sortedHashMap.put(entry.getKey(), entry.getValue());
-    }
-    return sortedHashMap;
+    list = retrieval_results.subList(0, Math.min(numResults, retrieval_results.size()));
+    for(ScoredDocument s : list) topResults.add(s);
+    return topResults;
   }
 
   private void createLmprob(Document d, Query query,
@@ -166,5 +100,5 @@ public class RankerComprehensive {
     double lm_score = 0.;
     for (Double score : lmprob) { lm_score += Math.log(score); }
     return lm_score;
-  }*/
+  }
 }

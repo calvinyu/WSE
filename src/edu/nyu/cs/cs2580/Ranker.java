@@ -68,7 +68,7 @@ public abstract class Ranker {
       case FAVORITE:
         return new RankerFavorite(options, arguments, indexer);
       case COMPREHENSIVE:
-        // return new RankerComprehensive(options, arguments, indexer);
+        return new RankerComprehensive(options, arguments, indexer);
       case COSINE:
         // Plug in your cosine Ranker
         break;

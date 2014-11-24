@@ -74,7 +74,6 @@ public class SearchEngine {
     public int _numIter = 2;
     public HashMap<String, Integer> _docNames = null;
 
-
     /**
      * Constructor for options.
      * @param optionFile where all the options must reside
