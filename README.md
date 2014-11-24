@@ -22,7 +22,7 @@ Instructions
   </ul>
 </li>
 <li> Spearman coefficient<br>
-$ java -cp src edu.nyu.cs.cs2580.Spearman data/index/numviews.idx data/index/pagerank.idx<br>
+$ java -cp src edu.nyu.cs.cs2580.Spearman data/index/pagerank.idx data/index/numviews.idx<br>
 
 </li>
 </ol>
