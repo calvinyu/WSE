@@ -22,7 +22,7 @@ class Spearman {
     if(pageRankList == null || numViewList == null) return;
     //calculate
     double result = calculateCorrelation(pageRankList, numViewList);
-    System.out.println("Correction is " + result);
+    System.out.println("Correlation is " + result);
   }
 
   //Assume the input contains only Integers

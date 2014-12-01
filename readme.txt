@@ -3,7 +3,7 @@
 create symbolic link:
         cd data
         ln -s /home/congyu/cs2580/hw2/instructor/data/wiki
-compile: 
+compile (go back to the home directory after creating symbolic link): 
         javac -cp lib/jsoup-1.8.1.jar src/edu/nyu/cs/cs2580/*.java
 mine:
         java -cp src:lib/jsoup-1.8.1.jar -Xmx512m edu.nyu.cs.cs2580.SearchEngine  --mode=mining --options=conf/engine.conf
@@ -18,13 +18,18 @@ PRF query:
 
 The output of search queries are: <docid><docname><score><pagerank><numviews>.
 
-2. Page rank is trying to reconstruct "real user behaviors", so the closer to numviews, the better the Page rank is (given there is no anomalies in numviews). So, we chose the parameters with the highest Spearman coefficient to be the best Page rank parameter. The parameters that yielded the highest Spearman coefficient was ...
+2. Page rank is trying to reconstruct "real user behaviors", so the closer to numviews, the better the Page rank is (given there is no anomalies in numviews). So, we chose the parameters with the highest Spearman coefficient to be the best Page rank parameter. The parameters that yielded the highest Spearman coefficient in our experiment (up to 4 iterations) was lambda=1.0 and 4 iterations and the value was 0.482. For the parameters given in the assignment, the results were
+
+- lambda=0.1, 1 iteration => 0.471
+- lambda=0.9, 1 iteration => 0.471
+- lambda=0.1, 2 iterations => 0.468
+- lambda=0.9, 2 iterations => 0.470
 
 3. To compute the Spearmen coefficient, run the following command:
 
 $ java -cp src edu.nyu.cs.cs2580.Spearman data/index/pagerank.idx data/index/numviews.idx
 
-The Spearman coefficient with our best Page rank was ....
+The Spearman coefficient with our best Page rank was 4.82.
 
 4. To compute query representations and query similarity, run the following command:
 
