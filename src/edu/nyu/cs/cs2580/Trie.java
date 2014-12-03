@@ -18,17 +18,25 @@ class Trie {
 
   public void insert(String s) {
     s = s.toLowerCase();
+    if(!isValidWord(s)) return;
+    insertIntoTrie(s, 0);
+  }
 
+  protected boolean isValidWord(String s) {
     for(int i=0; i<s.length(); ++i)
-      if(s.charAt(i) < 'a' || s.charAt(i) >'z') return;
+      if(s.charAt(i) < 'a' || s.charAt(i) >'z') return false;
+    return true;
+  }
 
+  protected void insertIntoTrie(String s, int start){
     TrieNode current = root;
-    for(int i=0; i<s.length(); ++i){
+    for(int i=start; i<s.length(); ++i){
       int index = s.charAt(i) - 'a';
       if(current.children[index] == null) {
         current.children[index] = new TrieNode();
-        if(i == s.length() - 1)
-          current.children[index].word = s;
+      }
+      if(i == s.length() - 1){
+        current.children[index].word = s;
       }
       current = current.children[index];
     }
@@ -48,15 +56,13 @@ class Trie {
         traverseTrie(s, result, root.children[s.charAt(index)-'a'], index+1);
       }
     }
-    else if(root.word == null) {
+    else{
       for(int i=0; i<26; ++i) {
         if(root.children[i] != null) {
           traverseTrie(s, result, root.children[i], index+1);
         }
       }
-    }
-    else {
-      result.add(root.word);
+      if(root.word != null) result.add(root.word);
     }
   }
 
@@ -67,13 +73,17 @@ class Trie {
     mytrie.insert("Tin");
     mytrie.insert("Tim");
     mytrie.insert("Carlos");
+    mytrie.insert("Carlo");
+    mytrie.insert("ABC");
+    mytrie.insert("AB");
+    mytrie.insert("A");
     // read copcus from standard input
     Scanner kb = new Scanner(System.in);
     while(kb.hasNext()) {
       mytrie.insert(kb.next());
     }
     //set query word
-    String query = "a";
+    String query = "ca";
     List<String> result = mytrie.query(query);
     //print out result
     for(String s: result) System.out.println(s);
