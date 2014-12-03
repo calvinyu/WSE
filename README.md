@@ -3,8 +3,8 @@ Web Search Engine Homework
 Project API
 <ol>
 <li> Brower to QueryHandler API<br>
-1. the url should be /suggest?query=sth&type=term or phrase, phrase means requesting phrases, term means requesting for single words.
-2. QueryHandler creates a ranker and call ranker.SuggestQuery(String partial_query, String type).
+1. the url should be /suggest?query=sth&type=term or phrase, phrase means requesting phrases, term means requesting for single words.<br>
+2. QueryHandler creates a ranker and call ranker.SuggestQuery(String partial_query, String type).<br>
 </li>
 </ol>
 
