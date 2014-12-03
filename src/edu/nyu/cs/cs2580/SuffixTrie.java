@@ -1,3 +1,5 @@
+package edu.nyu.cs.cs2580;
+
 import java.util.*;
 class SuffixTrie extends Trie{
 
@@ -31,8 +33,8 @@ class SuffixTrie extends Trie{
     }
     //set query word
     String query = "lt";
-    List<String> result = mytrie.query(query);
+    List<Pair<String, Integer>> result = mytrie.query(query);
     //print out result
-    for(String s: result) System.out.println(s);
+    for(Pair<String, Integer> s: result) System.out.println(s.first + " " + s.second);
   }
 }

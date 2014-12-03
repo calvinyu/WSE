@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.ArrayList;
+import java.lang.Math;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -61,6 +63,12 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     System.out.println("Construct index from: " + corpusFile);
     File folder = new File(corpusFile);
     File[] listOfFiles = folder.listFiles();
+
+    // Initialize SuffixTree and Trie for Project
+    dictionaryTrie = new Trie();
+    ngramSuffixTree = new SuffixTree();
+
+
     // First run: Determine the size of the array, initialize the attributes
     System.out.println("First round!!!");
     int cnt = 0;for (File file : listOfFiles) {
@@ -163,6 +171,9 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
 
   private void updateStatistics(String content, Vector<Integer> docFrequency, Vector<Integer> termFrequency) {
     HashSet<Integer> uniqueTerms = new HashSet<Integer>();
+    //method member for Project
+    List<Integer> suffix = new ArrayList<Integer>();
+
     Scanner s = new Scanner(content);  // Uses white space by default.
     while (s.hasNext()) {
       String word = s.next();
@@ -176,6 +187,14 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
         termFrequency.add(0);
         _dictionary.put(word, idx);
       }
+      // Add word to trie for Project : single word suggestion
+      dictionaryTrie.insert(word);
+
+      // Add ngram to trie for Project : sentence suggestion
+      suffix.add(idx);
+      ngramSuffixTree.insert(suffix, Math.max(0, suffix.size()-4), 4);
+
+
       // for each term add its count.
       termFrequency.set(idx, termFrequency.get(idx) + 1);
       uniqueTerms.add(idx);
@@ -482,6 +501,23 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
   public int documentTermFrequency(String term, int docid) {
     return 0;
   }
+  /*** Project API for query suggestion ***/
+
+  private Trie dictionaryTrie;
+  private SuffixTree ngramSuffixTree;
+
+  public List<Pair<String, Integer>> getWordSuggestion(String s) {
+    return dictionaryTrie.query(s);
+  }
+
+  public List<Pair<List<Integer>, Integer>> getNgramSuggestion(List<Integer> ngram) {
+    return ngramSuffixTree.query(ngram);
+  }
+
+  /*** End of Project API ***/
+
+
+
 }
 /* commands
 

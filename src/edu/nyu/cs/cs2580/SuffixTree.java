@@ -3,6 +3,8 @@
  * 2. strip off punctuations
  * 3. build the Tree from only part of the corpus
  */
+package edu.nyu.cs.cs2580;
+
 import java.util.*;
 class SuffixTree {
 
@@ -22,8 +24,8 @@ class SuffixTree {
     root = new TreeNode();
   }
 
-  public void insert(List<Integer> ngram) {
-    insertIntoTree(ngram, 0, ngram.size());
+  public void insert(List<Integer> ngram, int start, int size) {
+    insertIntoTree(ngram, start, start+size);
   }
 
   protected void insertIntoTree(List<Integer> ngram, int start, int height){
@@ -40,15 +42,15 @@ class SuffixTree {
     }
   }
 
-  public List<List<Integer>> query(List<Integer> ngram) {
-    List<List<Integer>> result = new LinkedList<List<Integer>>();
+  public List<Pair<List<Integer>, Integer>> query(List<Integer> ngram) {
+    List<Pair<List<Integer>, Integer>> result = new LinkedList<Pair<List<Integer>, Integer>>();
     List<Integer> helper = new ArrayList<Integer>();
 
     traverseTree(ngram, result, root, 0, helper);
     return result;
   }
 
-  private void traverseTree(List<Integer> query, List<List<Integer>> result, TreeNode root, 
+  private void traverseTree(List<Integer> query, List<Pair<List<Integer>, Integer>> result, TreeNode root, 
     int index, List<Integer> helper) {
     if(root == null) return;
     if(index < query.size()){
@@ -60,14 +62,14 @@ class SuffixTree {
     else{
       Set<Integer> keySet = root.children.keySet();
       for(Integer key: keySet){
-        if(helper.size() <= index) helper.add(key);
-        else helper.set(index, key);
+        helper.add(key);
         traverseTree(query, result, root.children.get(key), index+1, helper);
+        helper.remove(index);
       }
       if(root.children.size()==0){
         List<Integer> ngram = new LinkedList<Integer>();
         for(Integer i:helper) ngram.add(i);
-        result.add(ngram);
+        result.add(new Pair<List<Integer>, Integer>(ngram, root.freq));
       }
     }
   }
@@ -94,17 +96,19 @@ class SuffixTree {
     d.add(6);
     d.add(9);
     SuffixTree tree = new SuffixTree();
-    tree.insert(a);
-    tree.insert(b);
-    tree.insert(c);
-    tree.insert(d);
+    tree.insert(a,0,4);
+    tree.insert(b,0,4);
+    tree.insert(c,0,4);
+    tree.insert(d,0,4);
+    tree.insert(c,0,4);
+    tree.insert(d,0,4);
+    tree.insert(d,0,4);
 
     List<Integer> e = new LinkedList<Integer>();
-    e.add(1);
-    e.add(2);
-    List<List<Integer>> result = tree.query(e);
-    for(List<Integer> list: result){
-      for(Integer i: list){
+    List<Pair<List<Integer>, Integer>> result = tree.query(e);
+    for(Pair<List<Integer>, Integer> list: result){
+      System.out.println(list.second);
+      for(Integer i: list.first){
         System.out.printf(" %d", i);
       }
       System.out.println();
