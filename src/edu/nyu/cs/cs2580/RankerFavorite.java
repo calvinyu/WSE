@@ -1,9 +1,6 @@
 package edu.nyu.cs.cs2580;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 import edu.nyu.cs.cs2580.QueryHandler.CgiArguments;
 import edu.nyu.cs.cs2580.SearchEngine.Options;
@@ -45,6 +42,46 @@ public class RankerFavorite extends Ranker {
     double score = language_model_score(lmprob);
     return new ScoredDocument(doc, score);
   }
+
+  public List<String> suggestUnigram(Query query, int num) {
+    List<Pair<String, Integer>> unigramQueries =
+        ((IndexerInvertedCompressed) _indexer).getWordSuggestion(query._query);
+    Collections.sort(unigramQueries, new Comparator<Pair<String, Integer>>() {
+      @Override
+      public int compare(Pair<String, Integer> o1, Pair<String, Integer> o2) {
+        if (o1.second > o2.second) return 1;
+        else return -1;
+      }
+    });
+    List<String> rankedSuggestions = new ArrayList<String>();
+    for (int i = 0; i < Math.min(num, unigramQueries.size()); i++) {
+      rankedSuggestions.add(unigramQueries.get(i).first);
+    }
+    return rankedSuggestions;
+  }
+
+  public List<String> suggestNgrams(Query query, int num) {
+    List<Pair<List<Integer>, Integer>> ngramQueries =
+        ((IndexerInvertedCompressed) _indexer).getNgramSuggestions(query._tokens);
+    Collections.sort(ngramQueries, new Comparator<Pair<List<Integer>, Integer>>() {
+      @Override
+      public int compare(Pair<List<Integer>, Integer> o1, Pair<List<Integer>, Integer> o2) {
+        // TODO: Tune this ranking method
+        if (o1.second * o1.first.size() > o2.second * o2.first.size()) return 1;
+        else return -1;
+      }
+    });
+    List<String> rankedSuggestions = new ArrayList<String>();
+    for (int i = 0; i < Math.min(num, ngramQueries.size(); i++) {
+      String extendedQuery = "";
+      for (Integer j : ngramQueries.get(i).first) {
+        extendedQuery += ((IndexerInvertedCompressed) _indexer)._terms.get(j) + " ";
+      }
+      rankedSuggestions.add(extendedQuery.substring(0, extendedQuery.length() - 1));
+    }
+    return rankedSuggestions;
+  }
+
 
   private void createLmprob(Document d, Query query,
                             double lamb, Vector<Double> lmprob) {
