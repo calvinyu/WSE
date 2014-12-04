@@ -36,3 +36,62 @@ $ java -cp src edu.nyu.cs.cs2580.Spearman data/index/pagerank.idx data/index/num
 </li>
 </ol>
 
+Project Report Requirement
+<ul>
+<li>
+Motivation & Related Works
+<ul>
+<li>
+•  What problem are you solving?
+</li>
+<li>
+•  What assumptions are you making?
+</li>
+<li>
+•  What does the system do?
+</li>
+<li>
+•  What papers and/or systems have you looked at?
+</li>
+</ul>
+</li>
+<li>
+Design & Architecture
+<ul>
+<li>
+•  How did you arrive at your final design? What other alternatives were considered?
+</li>
+<li>
+•  What are the major components of your system?
+</li>
+</ul>
+</li>
+<li>
+Implementation
+<ul>
+<li>
+•  Details of each individual components, e.g., algorithms, APIs, etc.
+</li>
+<li>
+•  Include how to run your code
+</li>
+</ul>
+</li>
+<li>
+Evaluation:
+<ul>
+<li>
+•  Quality and/or performance
+</li>
+<li>
+•  Dataset (both corpora and queries) used for evaluation
+</li>
+<li>
+•  Baseline approaches compared against
+</li>
+<li>
+•  Effects of changing various parameters
+</li>
+</ul>
+</li>
+￼</ul>
