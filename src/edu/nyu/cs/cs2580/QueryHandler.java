@@ -206,12 +206,22 @@ class QueryHandler implements HttpHandler {
     	CgiArguments cgiArgs = new CgiArguments(uriQuery);
     	Ranker ranker = Ranker.Factory.getRankerByArguments(
     	        cgiArgs, SearchEngine.OPTIONS, _indexer);
-      List<String> temp = ((RankerFavorite) ranker).suggestUnigram(new Query(cgiArgs._query), 5);
-      String result = "";
-      for(String s: temp){
-        result += s + "\n";
-      }
-    	respondWithMsg(exchange, result);
+    	List<String> temp = null;
+    	switch(cgiArgs._suggestionType){
+    	  case TERM:
+    		temp = ((RankerFavorite) ranker).suggestUnigram(
+    				new Query(cgiArgs._query), 5); break;
+    	  case PHRASE:
+    		temp = ((RankerFavorite) ranker).suggestNgrams(
+    				new Query(cgiArgs._query), 5); break;
+    	  default:
+    	}
+        String result = "";
+        for(String s: temp){
+          result += s + "\n";
+        }
+        System.out.println("aaaaaaaa : " + result);
+        respondWithMsg(exchange, result);
     } else if (uriPath.equals("/prf")) {
     	// should write response here
     	CgiArguments cgiArgs = new CgiArguments(uriQuery);
