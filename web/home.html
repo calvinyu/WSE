@@ -10,23 +10,28 @@
   $(document).ready(function(){
     $('#back').hide();
     $('#input_field').hide();
+    $('.autocomplete').hide();
     $('#backToSearch').css({'cursor': 'pointer', 'text-decoration': 'underline'});
     
-    $('#cont_go').click(function(){
-      if($('#cont_query').val().length==0){
-    	  $('#cont_query').css("border","5px solid red");
-    	  $('#cont_query').attr("placeholder","Query can't be empty :)");
-      } else {
-      var encode_uri = 'http://localhost:25813/search?' + encodeURIComponent('query='+
-      $('#cont_query').val() + '&ranker=favorite&format=html');
-      $('#result').load(encode_uri);
-      }
-    });
-  
-    $('#go').click(function(){
+    // issue again in the result page
+    function issueQuery2(){
+        if($('#cont_query').val().length==0){
+      	  $('#cont_query').css("border","5px solid red");
+      	  $('#cont_query').attr("placeholder","Query can't be empty :)");
+        } else {
+        var encode_uri = 'http://localhost:25813/search?' + encodeURIComponent('query='+
+        $('#cont_query').val() + '&ranker=favorite&format=html');
+        $('#result').load(encode_uri);
+        }
+    };
+    
+    $('#cont_go').click(issueQuery2);
+    
+    // issue in the home page and go to result page
+    function issueQuery1(){
         if($('#query').val().length==0){
-      	  $('#query').css("border","5px solid red");
-      	  $('#query').attr("placeholder","Query can't be empty :)");
+      	  $('#query').css("border", "5px solid red");
+      	  $('#query').attr("placeholder", "Query can't be empty :)");
         } else {
         var encode_uri = 'http://localhost:25813/search?' + encodeURIComponent('query='+
         $('#query').val() + '&ranker=favorite&format=html');
@@ -36,19 +41,110 @@
         $('#back').show();
         $('#input_field').slideDown();
         }
-      });
-      
+    }
+  
+    $('#go').click(issueQuery1);
+    
+    var timer = 0;
+    $('#query').keyup(function(e){
+        if(e.which==13){
+            clearTimeout(timer);
+            issueQuery1();
+        } else {
+          if (timer) {
+            clearTimeout(timer);
+          }
+          timer = setTimeout(issueSuggest1, 800);
+    	}
+    });
+    
+    $('#cont_query').keyup(function(e){
+        if(e.which==13){
+            clearTimeout(timer);
+            issueQuery2();
+        } else {
+          if (timer) {
+            clearTimeout(timer);
+          }
+          timer = setTimeout(issueSuggest2, 800);
+    	}
+    });
+    
+    function issueSuggest1(){
+    	var data = $('#query').val();
+    	if(data.length > 2){
+    	  $('#gogogo').slideUp();
+    	  $('#input_field').slideDown();
+    	  $('#result').slideDown();
+    	  $('#cont_query').val($('#query').val());
+      	  if(data.indexOf(' ')<0){
+      	    $.get('http://localhost:25813/suggest?' + encodeURIComponent('query=' + data + 
+      			'&suggestionType=term'),handleSuggest);
+      	  } else {
+      	    $.get('http://localhost:25813/suggest?' + encodeURIComponent('query=' + data + 
+  			    '&suggestionType=phrase'),handleSuggest);
+      	  }
+      	}
+    }
+    
+    function issueSuggest2(){
+    	var data = $('#cont_query').val();
+    	if(data.length > 0){
+    	  if(data.length > 2){
+    	  if(data.indexOf(' ')<0){
+    	    $.get('http://localhost:25813/suggest?' + encodeURIComponent('query=' + data + 
+    			'&suggestionType=term'),handleSuggest);
+    	  } else {
+    	    $.get('http://localhost:25813/suggest?' + encodeURIComponent('query=' + data + 
+			    '&suggestionType=phrase'),handleSuggest);
+    	  }
+    	}
+    	} else { $('#suggests').hide(); }
+    }
+
+    function handleSuggest(data){
+    	if(data.length>0){
+    		tag = '<li class="clickable"><a hreg="#">';
+    		data = tag + data;
+    		while(data.indexOf('\n')>0)
+    			data = data.replace("\n","</a></li>" + tag);
+    		$('#suggests').html(data);
+    		$('#suggests').show();
+    	}
+    };
+    
     $('.login-input').click(function(){
     	$(this).css("border", "1px solid #172b4e");
     	$(this).attr("placeholder","");
     });
     
     $('#backToSearch').click(function(){
-      $('#result').slideUp();
+      $('#result').empty().slideUp();
       $('#gogogo').slideDown();
+      $('.login-input').val("");
       $('#back').hide();
       $('#input_field').slideUp();
     }).css("cursor","pointer");
+    
+  });
+  
+  $(document).on('mouseover','.clickable',function(){
+	  $(this).siblings().removeClass('highlight'); 
+	  $(this).addClass('highlight');
+	  $('#cont_query').attr("placeholder",$(this).text());
+  });
+  
+  $(document).on('click','.clickable',function(){
+	  $('#cont_query').val($(this).text());
+	  $('#suggests').empty().hide();
+	  var encode_uri = 'http://localhost:25813/search?' + encodeURIComponent('query='+
+		    $('#cont_query').val() + '&ranker=favorite&format=html');
+	  $('#result').load(encode_uri);
+	  $('#back').show();
+	  setTimeout(function(){
+		if($('#result').text().length==0)
+		  $('#result').text("Sorry, we can't find any results...");
+	  },1000);
   });
   </script>
   <link rel="stylesheet" href="css/style.css">
@@ -64,12 +160,13 @@
   </form>
   
   <div id="input_field" style="margin-top:30px;">
-  <input type="text" id="cont_query" class="login-input"
+  <input id="cont_query" type="text" class="login-input"
   style="width:30%; float:left" autofocus>
   <input id="cont_go" type="button" value="Go!" class="login-submit" 
   style="width:8%; float:left; margin-left:20px">
-  </div>
-  <div id="result" style="text-align:left; clear:both"></div>
+  </div><br>
+  <div id="suggests" class="autocomplete"></div>
+  <div id="result" style="text-align:left; clear:both; font-size: 15px;"></div>
   <div id="back" style="margin-top:100px">
  	<label id="backToSearch">Back to Home Page</label>
   </div>
