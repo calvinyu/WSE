@@ -49,6 +49,7 @@ class Trie implements Serializable{
   }
 
   public List<Pair<String, Integer>> query(String s) {
+    System.out.println("In function: " + s);
     s = s.toLowerCase();
     List<Pair<String,Integer>> result = new LinkedList<Pair<String, Integer>>();
     traverseTrie(s, result, root, 0);

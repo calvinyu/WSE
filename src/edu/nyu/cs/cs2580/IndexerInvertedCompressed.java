@@ -66,8 +66,8 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     File[] listOfFiles = folder.listFiles();
 
     // Initialize SuffixTree and Trie for Project
-    dictionaryTrie = new Trie();
-    ngramSuffixTree = new SuffixTree();
+    _dictionaryTrie = new Trie();
+    _ngramSuffixTree = new SuffixTree();
 
 
     // First run: Determine the size of the array, initialize the attributes
@@ -193,10 +193,10 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
         _dictionary.put(word, idx);
       }
       // Add word to trie for Project : single word suggestion
-      dictionaryTrie.insert(word);
+      _dictionaryTrie.insert(word);
       // Add ngram to trie for Project : sentence suggestion
       suffix.add(idx);
-      ngramSuffixTree.insert(suffix, Math.max(0, suffix.size()-1), Math.min(1, suffix.size()));
+      _ngramSuffixTree.insert(suffix, Math.max(0, suffix.size() - 1), Math.min(1, suffix.size()));
 
       // for each term add its count.
       termFrequency.set(idx, termFrequency.get(idx) + 1);
@@ -294,31 +294,37 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
   }
 
   @Override
-  public void loadIndex() throws IOException, ClassNotFoundException {
-    String indexFile = _options._indexPrefix + "/corpus.idx";
-    System.out.println("Load index from: " + indexFile);
+  public void loadIndex() {
+    try {
+      String indexFile = _options._indexPrefix + "/corpus.idx";
+      System.out.println("Load index from: " + indexFile);
 
-    ObjectInputStream reader =
-        new ObjectInputStream(new FileInputStream(indexFile));
-    IndexerInvertedCompressed loaded = (IndexerInvertedCompressed) reader.readObject();
+      ObjectInputStream reader =
+          new ObjectInputStream(new FileInputStream(indexFile));
+      IndexerInvertedCompressed loaded = (IndexerInvertedCompressed) reader.readObject();
 
-    this._documents = loaded._documents;
-    // Compute numDocs and totalTermFrequency b/c Indexer is not serializable.
-    this._numDocs = _documents.size();
-    for (Integer freq : loaded._termCorpusFrequency) {
-      this._totalTermFrequency += freq;
+      this._documents = loaded._documents;
+      // Compute numDocs and totalTermFrequency b/c Indexer is not serializable.
+      this._numDocs = _documents.size();
+      for (Integer freq : loaded._termCorpusFrequency) {
+        this._totalTermFrequency += freq;
+      }
+      //this._postingsList = loaded._postingsList;
+      this._docBody = loaded._docBody;
+      this._compressedList = loaded._compressedList;
+      this._dictionary = loaded._dictionary;
+      this._terms = loaded._terms;
+      this._termCorpusFrequency = loaded._termCorpusFrequency;
+      this._termDocFrequency = loaded._termDocFrequency;
+      this._dictionaryTrie = loaded._dictionaryTrie;
+      this._ngramSuffixTree = loaded._ngramSuffixTree;
+      reader.close();
+
+      System.out.println(Integer.toString(_numDocs) + " documents loaded " +
+          "with " + Long.toString(_totalTermFrequency) + " terms!");
+    } catch(Exception e) {
+      e.printStackTrace();
     }
-    //this._postingsList = loaded._postingsList;
-    this._docBody = loaded._docBody;
-    this._compressedList = loaded._compressedList;
-    this._dictionary = loaded._dictionary;
-    this._terms = loaded._terms;
-    this._termCorpusFrequency = loaded._termCorpusFrequency;
-    this._termDocFrequency = loaded._termDocFrequency;
-    reader.close();
-
-    System.out.println(Integer.toString(_numDocs) + " documents loaded " +
-        "with " + Long.toString(_totalTermFrequency) + " terms!");
   }
 
   @Override
@@ -506,17 +512,18 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
   }
   /*** Project API for query suggestion ***/
 
-  private Trie dictionaryTrie;
-  private SuffixTree ngramSuffixTree;
+  private Trie _dictionaryTrie;
+  private SuffixTree _ngramSuffixTree;
 
   public List<Pair<String, Integer>> getWordSuggestion(String s) {
-    return dictionaryTrie.query(s);
+    System.out.println("[" + s + "]");
+    return _dictionaryTrie.query(s);
   }
 
   public List<Pair<List<Integer>, Integer>> getNgramSuggestion(List<String> ngram) {
     List<Integer> query = new ArrayList<Integer>();
     for(String s: ngram) query.add(_dictionary.get(s));
-    return ngramSuffixTree.query(query);
+    return _ngramSuffixTree.query(query);
   }
 
   /*** End of Project API ***/

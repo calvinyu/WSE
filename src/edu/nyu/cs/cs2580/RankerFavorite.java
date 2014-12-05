@@ -44,23 +44,19 @@ public class RankerFavorite extends Ranker {
   }
 
   public List<String> suggestUnigram(Query query, int num) {
-    System.out.println(query._query);
-    System.out.println(num);
     List<Pair<String, Integer>> unigramQueries =
         ((IndexerInvertedCompressed) _indexer).getWordSuggestion(query._query);
-    System.out.println("out of indexer");
     Collections.sort(unigramQueries, new Comparator<Pair<String, Integer>>() {
       public int compare(Pair<String, Integer> o1, Pair<String, Integer> o2) {
-        if (o1.second > o2.second) return 1;
-        else return -1;
+        if (o1.second < o2.second) return 1;
+        else if (o1.second > o2.second) return -1;
+        return 0;
       }
     });
-    System.out.println("out of sorting");
     List<String> rankedSuggestions = new ArrayList<String>();
     for (int i = 0; i < Math.min(num, unigramQueries.size()); i++) {
       rankedSuggestions.add(unigramQueries.get(i).first);
     }
-    System.out.println("out of adding");
     return rankedSuggestions;
   }
 
@@ -69,12 +65,14 @@ public class RankerFavorite extends Ranker {
     System.out.println(num);
     List<Pair<List<Integer>, Integer>> ngramQueries =
         ((IndexerInvertedCompressed) _indexer).getNgramSuggestion(query._tokens);
+    System.out.println("Before sorting...");
     Collections.sort(ngramQueries, new Comparator<Pair<List<Integer>, Integer>>() {
       @Override
       public int compare(Pair<List<Integer>, Integer> o1, Pair<List<Integer>, Integer> o2) {
         // TODO: Tune this ranking method
-        if (o1.second * o1.first.size() > o2.second * o2.first.size()) return 1;
-        else return -1;
+        if (o1.second * o1.first.size() < o2.second * o2.first.size()) return 1;
+        else if (o1.second * o1.first.size() > o2.second * o2.first.size()) return -1;
+        return 0;
       }
     });
     List<String> rankedSuggestions = new ArrayList<String>();
@@ -83,6 +81,7 @@ public class RankerFavorite extends Ranker {
       for (Integer j : ngramQueries.get(i).first) {
         extendedQuery += ((IndexerInvertedCompressed) _indexer)._terms.get(j) + " ";
       }
+      System.out.println(extendedQuery.substring(0, extendedQuery.length() - 1));
       rankedSuggestions.add(extendedQuery.substring(0, extendedQuery.length() - 1));
     }
     return rankedSuggestions;
