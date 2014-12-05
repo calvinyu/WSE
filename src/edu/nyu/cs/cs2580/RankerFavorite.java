@@ -48,17 +48,19 @@ public class RankerFavorite extends Ranker {
     System.out.println(num);
     List<Pair<String, Integer>> unigramQueries =
         ((IndexerInvertedCompressed) _indexer).getWordSuggestion(query._query);
+    System.out.println("out of indexer");
     Collections.sort(unigramQueries, new Comparator<Pair<String, Integer>>() {
-      @Override
       public int compare(Pair<String, Integer> o1, Pair<String, Integer> o2) {
         if (o1.second > o2.second) return 1;
         else return -1;
       }
     });
+    System.out.println("out of sorting");
     List<String> rankedSuggestions = new ArrayList<String>();
     for (int i = 0; i < Math.min(num, unigramQueries.size()); i++) {
       rankedSuggestions.add(unigramQueries.get(i).first);
     }
+    System.out.println("out of adding");
     return rankedSuggestions;
   }
 
