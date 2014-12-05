@@ -124,6 +124,36 @@ input, textarea, select, label {
   border: 0;
 }
 
+.autocomplete { 
+  display: block;
+  color: white;
+  width: 30%;
+  text-align: left; 
+  font-size: 20px;
+  text-shadow: 0 1px black;
+  margin-top:15px;
+  border: 1px solid #15243b;
+  border-top-color: #0d1827;
+  border-radius: 4px;
+  background: #2b3e5d;
+  background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.2) 20%, rgba(0, 0, 0, 0));
+  background-image: -moz-linear-gradient(top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.2) 20%, rgba(0, 0, 0, 0));
+  background-image: -o-linear-gradient(top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.2) 20%, rgba(0, 0, 0, 0));
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.2) 20%, rgba(0, 0, 0, 0));
+  -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.highlight {
+	background-color: yellow;
+	color: black;
+}
+
+.clickable {
+	cursor: pointer;
+	list-style-type: none;
+}
+
 :-moz-placeholder { color: #bcc0c8 !important; }
 ::-webkit-input-placeholder { color: #bcc0c8; }
 :-ms-input-placeholder { color: #bcc0c8 !important; }
