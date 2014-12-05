@@ -62,7 +62,7 @@ public class RankerFavorite extends Ranker {
 
   public List<String> suggestNgrams(Query query, int num) {
     List<Pair<List<Integer>, Integer>> ngramQueries =
-        ((IndexerInvertedCompressed) _indexer).getNgramSuggestions(query._tokens);
+        ((IndexerInvertedCompressed) _indexer).getNgramSuggestion(query._tokens);
     Collections.sort(ngramQueries, new Comparator<Pair<List<Integer>, Integer>>() {
       @Override
       public int compare(Pair<List<Integer>, Integer> o1, Pair<List<Integer>, Integer> o2) {
@@ -72,7 +72,7 @@ public class RankerFavorite extends Ranker {
       }
     });
     List<String> rankedSuggestions = new ArrayList<String>();
-    for (int i = 0; i < Math.min(num, ngramQueries.size(); i++) {
+    for (int i = 0; i < Math.min(num, ngramQueries.size()); i++) {
       String extendedQuery = "";
       for (Integer j : ngramQueries.get(i).first) {
         extendedQuery += ((IndexerInvertedCompressed) _indexer)._terms.get(j) + " ";

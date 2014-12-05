@@ -510,8 +510,10 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     return dictionaryTrie.query(s);
   }
 
-  public List<Pair<List<Integer>, Integer>> getNgramSuggestion(List<Integer> ngram) {
-    return ngramSuffixTree.query(ngram);
+  public List<Pair<List<Integer>, Integer>> getNgramSuggestion(List<String> ngram) {
+    List<Integer> query = new ArrayList<Integer>();
+    for(String s: ngram) query.add(_dictionary.get(s));
+    return ngramSuffixTree.query(query);
   }
 
   /*** End of Project API ***/
