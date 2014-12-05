@@ -44,6 +44,8 @@ public class RankerFavorite extends Ranker {
   }
 
   public List<String> suggestUnigram(Query query, int num) {
+    System.out.println(query._query);
+    System.out.println(num);
     List<Pair<String, Integer>> unigramQueries =
         ((IndexerInvertedCompressed) _indexer).getWordSuggestion(query._query);
     Collections.sort(unigramQueries, new Comparator<Pair<String, Integer>>() {
@@ -61,6 +63,8 @@ public class RankerFavorite extends Ranker {
   }
 
   public List<String> suggestNgrams(Query query, int num) {
+    System.out.println(query._query);
+    System.out.println(num);
     List<Pair<List<Integer>, Integer>> ngramQueries =
         ((IndexerInvertedCompressed) _indexer).getNgramSuggestion(query._tokens);
     Collections.sort(ngramQueries, new Comparator<Pair<List<Integer>, Integer>>() {

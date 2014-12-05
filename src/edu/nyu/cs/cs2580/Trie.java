@@ -1,10 +1,11 @@
 package edu.nyu.cs.cs2580;
 
 import java.util.*;
+import java.io.*;
 
-class Trie {
+class Trie implements Serializable{
   
-  class TrieNode {
+  class TrieNode implements Serializable{
     TrieNode[] children;
     String word;
     int freq;

@@ -6,15 +6,15 @@
 package edu.nyu.cs.cs2580;
 
 import java.util.*;
-class SuffixTree {
+import java.io.*;
+class SuffixTree implements Serializable{
 
-  class TreeNode {
+  class TreeNode implements Serializable{
     int freq;
     Map<Integer, TreeNode> children;
     TreeNode(){
       freq = 0;
       //Key is wordIndex and value is the subtree
-      children = new HashMap<Integer, TreeNode>();
     }
   };
 
@@ -32,6 +32,7 @@ class SuffixTree {
     TreeNode current = root;
     for(int i=start; i<height; ++i){
       int index = ngram.get(i);
+      if(current.children == null) current.children = new HashMap<Integer, TreeNode>();
       if(current.children.containsKey(index) == false) {
         current.children.put(index, new TreeNode());
       }

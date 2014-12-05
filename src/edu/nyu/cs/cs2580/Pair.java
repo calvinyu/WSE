@@ -1,6 +1,6 @@
 package edu.nyu.cs.cs2580;
-
-class Pair<E, F> {
+import java.io.*;
+class Pair<E, F> implements Serializable{
   E first;
   F second;
   Pair(E first, F second){

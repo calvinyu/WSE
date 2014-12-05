@@ -1,7 +1,8 @@
 package edu.nyu.cs.cs2580;
 
 import java.util.*;
-class SuffixTrie extends Trie{
+import java.io.*;
+class SuffixTrie extends Trie implements Serializable{
 
   SuffixTrie(){
     super();

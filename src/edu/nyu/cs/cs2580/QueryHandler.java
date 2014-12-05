@@ -197,6 +197,8 @@ class QueryHandler implements HttpHandler {
     // Validate the incoming request.
     String uriQuery = exchange.getRequestURI().getQuery();
     String uriPath = exchange.getRequestURI().getPath();
+    System.out.println(uriQuery);
+    System.out.println(uriPath);
     if (uriPath == null || uriQuery == null) {
       respondWithMsg(exchange, "Something wrong with the URI!");
     }

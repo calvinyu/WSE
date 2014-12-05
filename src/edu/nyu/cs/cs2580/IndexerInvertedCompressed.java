@@ -56,7 +56,8 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
   }
 
   @Override
-  public void constructIndex() throws IOException {
+  public void constructIndex(){
+    try{
     Vector<Integer> tmpTermDocFrequency = new Vector<Integer>();
     Vector<Integer> tmpTermCorpusFrequency = new Vector<Integer>();
     String corpusFile = _options._corpusPrefix;
@@ -159,6 +160,10 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
         new ObjectOutputStream(new FileOutputStream(indexFile));
     writer.writeObject(this);
     writer.close();
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
   }
 
   private void processDocument(File file, Vector<Integer> docFrequency, Vector<Integer> termFrequency) throws IOException {
@@ -189,11 +194,9 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       }
       // Add word to trie for Project : single word suggestion
       dictionaryTrie.insert(word);
-
       // Add ngram to trie for Project : sentence suggestion
       suffix.add(idx);
-      ngramSuffixTree.insert(suffix, Math.max(0, suffix.size()-4), 4);
-
+      ngramSuffixTree.insert(suffix, Math.max(0, suffix.size()-1), Math.min(1, suffix.size()));
 
       // for each term add its count.
       termFrequency.set(idx, termFrequency.get(idx) + 1);
