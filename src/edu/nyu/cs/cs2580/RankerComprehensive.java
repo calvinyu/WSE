@@ -24,6 +24,11 @@ public class RankerComprehensive extends RankerFavorite {
   }
 
   @Override
+  public String 
+  expandQuery(Vector<ScoredDocument> docs, String query, int numDocs, int numTerms){
+    return "";
+  }
+  @Override
   public Vector<ScoredDocument> runQuery(Query query, int numResults) {
     // load page rank
     float[] pageRank;

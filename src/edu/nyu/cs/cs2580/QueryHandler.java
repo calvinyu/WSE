@@ -2,8 +2,7 @@ package edu.nyu.cs.cs2580;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Vector;
+import java.util.*;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -205,9 +204,11 @@ class QueryHandler implements HttpHandler {
     	CgiArguments cgiArgs = new CgiArguments(uriQuery);
     	Ranker ranker = Ranker.Factory.getRankerByArguments(
     	        cgiArgs, SearchEngine.OPTIONS, _indexer);
-    	String query = cgiArgs._query;
-    	// String result = ranker.suggest(query);
-    	String result = query + " search\n" + query + " mining\n" + query + " google";
+      List<String> temp = ((RankerFavorite) ranker).suggestUnigram(new Query(cgiArgs._query), 5);
+      String result = "";
+      for(String s: temp){
+        result += s + "\n";
+      }
     	respondWithMsg(exchange, result);
     } else if (uriPath.equals("/prf")) {
     	// should write response here

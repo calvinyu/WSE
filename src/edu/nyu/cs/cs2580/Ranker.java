@@ -45,6 +45,11 @@ public abstract class Ranker {
     _indexer = indexer;
   }
 
+
+  //Abstract class for Project
+  public abstract String 
+  expandQuery(Vector<ScoredDocument> docs, String query, int numDocs, int numTerms);
+
   /**
    * Processes one query.
    * @param query the parsed user query

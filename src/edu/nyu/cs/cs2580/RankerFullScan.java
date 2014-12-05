@@ -22,6 +22,11 @@ class RankerFullScan extends Ranker {
   }
 
   @Override
+  public String 
+  expandQuery(Vector<ScoredDocument> docs, String query, int numDocs, int numTerms){
+    return "";
+  }
+  @Override
   public Vector<ScoredDocument> runQuery(Query query, int numResults) {    
     Vector<ScoredDocument> all = new Vector<ScoredDocument>();
     for (int i = 0; i < _indexer.numDocs(); ++i) {

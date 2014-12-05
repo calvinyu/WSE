@@ -82,7 +82,11 @@ public class RankerFavorite extends Ranker {
     return rankedSuggestions;
   }
 
-
+  @Override
+  public String 
+  expandQuery(Vector<ScoredDocument> docs, String query, int numDocs, int numTerms){
+    return "";
+  }
   private void createLmprob(Document d, Query query,
                             double lamb, Vector<Double> lmprob) {
     // Cast Document into DocumentIndexed
