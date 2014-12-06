@@ -46,8 +46,9 @@ class SuffixTree implements Serializable{
   public List<Pair<List<Integer>, Integer>> query(List<Integer> ngram) {
     List<Pair<List<Integer>, Integer>> result = new LinkedList<Pair<List<Integer>, Integer>>();
     List<Integer> helper = new ArrayList<Integer>();
-
+    System.out.println("Query count:" + ngram.size());
     traverseTree(ngram, result, root, 0, helper);
+    System.out.println("Done traversing!");
     return result;
   }
 
@@ -61,6 +62,7 @@ class SuffixTree implements Serializable{
       }
     }
     else{
+      if(root.children == null) return;
       Set<Integer> keySet = root.children.keySet();
       for(Integer key: keySet){
         helper.add(key);
