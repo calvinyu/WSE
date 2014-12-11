@@ -198,8 +198,6 @@ class QueryHandler implements HttpHandler {
       // Validate the incoming request.
       String uriQuery = exchange.getRequestURI().getQuery();
       String uriPath = exchange.getRequestURI().getPath();
-      System.out.println(uriQuery);
-      System.out.println(uriPath);
       if (uriPath == null || uriQuery == null) {
         respondWithMsg(exchange, "Something wrong with the URI!");
       }
@@ -207,15 +205,15 @@ class QueryHandler implements HttpHandler {
         CgiArguments cgiArgs = new CgiArguments(uriQuery);
         Ranker ranker = Ranker.Factory.getRankerByArguments(
             cgiArgs, SearchEngine.OPTIONS, _indexer);
+        Query query = new Query(cgiArgs._query);
+        query.processQuery();
         List<String> temp = null;
         switch (cgiArgs._suggestionType) {
           case TERM:
-            temp = ((RankerFavorite) ranker).suggestUnigram(
-                new Query(cgiArgs._query), 5);
+            temp = ((RankerFavorite) ranker).suggestUnigram(query, 5);
             break;
           case PHRASE:
-            temp = ((RankerFavorite) ranker).suggestNgrams(
-                new Query(cgiArgs._query), 5);
+            temp = ((RankerFavorite) ranker).suggestNgrams(query, 5);
             break;
           default:
         }

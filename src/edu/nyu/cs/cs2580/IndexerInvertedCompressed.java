@@ -196,7 +196,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       _dictionaryTrie.insert(word);
       // Add ngram to trie for Project : sentence suggestion
       suffix.add(idx);
-      _ngramSuffixTree.insert(suffix, Math.max(0, suffix.size() - 1), Math.min(1, suffix.size()));
+      _ngramSuffixTree.insert(suffix, Math.max(0, suffix.size() - 2), Math.min(2, suffix.size()));
 
       // for each term add its count.
       termFrequency.set(idx, termFrequency.get(idx) + 1);
