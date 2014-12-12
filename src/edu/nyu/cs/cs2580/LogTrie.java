@@ -1,23 +1,25 @@
 package edu.nyu.cs.cs2580;
 
-import java.util.*;
-import java.io.*;
+import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
 
-class Trie implements Serializable{
-  
+
+class LogTrie extends Trie implements Serializable {
+
   class TrieNode implements Serializable{
     TrieNode[] children;
     String word;
     int freq;
     public TrieNode() {
-      children = new TrieNode[26];
+      children = new TrieNode[27];
       freq = 0;
     }
   };
 
   TrieNode root;
 
-  Trie (){
+  LogTrie (){
     root = new TrieNode();
   }
 
@@ -28,15 +30,17 @@ class Trie implements Serializable{
   }
 
   protected boolean isValidWord(String s) {
-    for(int i=0; i<s.length(); ++i)
-      if(s.charAt(i) < 'a' || s.charAt(i) >'z') return false;
+    for(int i=0; i<s.length(); ++i) {
+      System.out.println(s.charAt(i));
+      if ((s.charAt(i) < 'a' || s.charAt(i) > 'z') && s.charAt(i) != ' ') return false;
+    }
     return true;
   }
 
   protected void insertIntoTrie(String s, int start){
     TrieNode current = root;
     for(int i=start; i<s.length(); ++i){
-      int index = s.charAt(i) - 'a';
+      int index = s.charAt(i) == ' ' ? 26 : s.charAt(i) - 'a';
       if(current.children[index] == null) {
         current.children[index] = new TrieNode();
       }
@@ -51,7 +55,7 @@ class Trie implements Serializable{
   public List<Pair<String, Integer>> query(String s) {
     System.out.println("In function: " + s);
     s = s.toLowerCase();
-    List<Pair<String,Integer>> result = new LinkedList<Pair<String, Integer>>();
+    List<Pair<String, Integer>> result = new LinkedList<Pair<String, Integer>>();
     traverseTrie(s, result, root, 0);
     return result;
   }
@@ -59,12 +63,13 @@ class Trie implements Serializable{
   protected void traverseTrie(String s, List<Pair<String, Integer>> result, TrieNode root, int index) {
     if(root == null) return;
     if(index < s.length()){
-      if(root.children[s.charAt(index)-'a'] != null){
-        traverseTrie(s, result, root.children[s.charAt(index)-'a'], index+1);
+      int charInd = s.charAt(index) == ' ' ? 26 : s.charAt(index)-'a';
+      if(root.children[charInd] != null){
+        traverseTrie(s, result, root.children[charInd], index+1);
       }
     }
     else{
-      for(int i=0; i<26; ++i) {
+      for(int i=0; i<27; ++i) {
         if(root.children[i] != null) {
           traverseTrie(s, result, root.children[i], index+1);
         }
@@ -72,31 +77,4 @@ class Trie implements Serializable{
       if(root.word != null) result.add(new Pair<String, Integer>(root.word, root.freq));
     }
   }
-
-  public static void main(String[] args) {
-    Trie mytrie = new Trie();
-    mytrie.insert("Calvin");
-    mytrie.insert("Carl");
-    mytrie.insert("Tin");
-    mytrie.insert("Tim");
-    mytrie.insert("Carlos");
-    mytrie.insert("Carlos");
-    mytrie.insert("Carlos");
-    mytrie.insert("Carlos");
-    mytrie.insert("Carlo");
-    mytrie.insert("ABC");
-    mytrie.insert("AB");
-    mytrie.insert("A");
-    // read copcus from standard input
-    Scanner kb = new Scanner(System.in);
-    while(kb.hasNext()) {
-      mytrie.insert(kb.next());
-    }
-    //set query word
-    String query = "";
-    List<Pair<String, Integer>> result = mytrie.query(query);
-    //print out result
-    for(Pair<String, Integer> s: result) System.out.println(s.first + " " + s.second);
-  }
-
 }

@@ -87,6 +87,27 @@ public class RankerFavorite extends Ranker {
     return rankedSuggestions;
   }
 
+  public List<String> suggestLoggedQuery(Query query, int num) {
+    System.out.println("suggestLoggedQuery");
+    List<Pair<String, Integer>> unigramQueries =
+        ((IndexerInvertedCompressed) _indexer).getUserLogSuggestion(query._query);
+    for (Pair<String, Integer> p : unigramQueries) {
+      System.out.println(p.first);
+    }
+    Collections.sort(unigramQueries, new Comparator<Pair<String, Integer>>() {
+      public int compare(Pair<String, Integer> o1, Pair<String, Integer> o2) {
+        if (o1.second < o2.second) return 1;
+        else if (o1.second > o2.second) return -1;
+        return 0;
+      }
+    });
+    List<String> rankedSuggestions = new ArrayList<String>();
+    for (int i = 0; i < Math.min(num, unigramQueries.size()); i++) {
+      rankedSuggestions.add(unigramQueries.get(i).first);
+    }
+    return rankedSuggestions;
+  }
+
   @Override
   public String 
   expandQuery(Vector<ScoredDocument> docs, String query, int numDocs, int numTerms){

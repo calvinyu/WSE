@@ -1,12 +1,6 @@
 package edu.nyu.cs.cs2580;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -318,6 +312,17 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       this._termDocFrequency = loaded._termDocFrequency;
       this._dictionaryTrie = loaded._dictionaryTrie;
       this._ngramSuffixTree = loaded._ngramSuffixTree;
+      // TODO: Need to create logTrie from the file
+      this._logTrie = new LogTrie();
+      File userLog = new File("data/index/log.idx");
+      if (userLog.exists()) {
+        BufferedReader br = new BufferedReader(new FileReader(userLog));
+        String line = br.readLine();
+        while (line != null) {
+          _logTrie.insert(line.trim());
+          line = br.readLine();
+        }
+      }
       reader.close();
 
       System.out.println(Integer.toString(_numDocs) + " documents loaded " +
@@ -514,9 +519,9 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
 
   private Trie _dictionaryTrie;
   private SuffixTree _ngramSuffixTree;
+  private LogTrie _logTrie;
 
   public List<Pair<String, Integer>> getWordSuggestion(String s) {
-    System.out.println("[" + s + "]");
     return _dictionaryTrie.query(s);
   }
 
@@ -524,6 +529,20 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     List<Integer> query = new ArrayList<Integer>();
     for(String s: ngram) query.add(_dictionary.get(s));
     return _ngramSuffixTree.query(query);
+  }
+
+  public void insertUserQuery(String s) {
+    _logTrie.insert(s);
+  }
+
+  public List<Pair<String, Integer>> getUserLogSuggestion(String s) {
+    System.out.println("getUserLogSuggestion");
+    for (Pair<String, Integer> p : _logTrie.query(s)) {
+      System.out.println("elem");
+      System.out.println(p.first);
+    }
+    System.out.println(_logTrie.query(s));
+    return _logTrie.query(s);
   }
 
   /*** End of Project API ***/

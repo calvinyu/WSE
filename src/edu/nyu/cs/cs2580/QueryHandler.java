@@ -1,7 +1,6 @@
 package edu.nyu.cs.cs2580;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -207,13 +206,14 @@ class QueryHandler implements HttpHandler {
             cgiArgs, SearchEngine.OPTIONS, _indexer);
         Query query = new Query(cgiArgs._query);
         query.processQuery();
-        List<String> temp = null;
+        List<String> temp = ((RankerFavorite) ranker).suggestLoggedQuery(query, 4);
+        int numSuggest = 8 - temp.size();
         switch (cgiArgs._suggestionType) {
           case TERM:
-            temp = ((RankerFavorite) ranker).suggestUnigram(query, 5);
+            temp.addAll(((RankerFavorite) ranker).suggestUnigram(query, numSuggest));
             break;
           case PHRASE:
-            temp = ((RankerFavorite) ranker).suggestNgrams(query, 5);
+            temp.addAll(((RankerFavorite) ranker).suggestNgrams(query, numSuggest));
             break;
           default:
         }
@@ -221,7 +221,6 @@ class QueryHandler implements HttpHandler {
         for (String s : temp) {
           result += s + "\n";
         }
-        System.out.println("aaaaaaaa : " + result);
         respondWithMsg(exchange, result);
       } else if (uriPath.equals("/prf")) {
         // should write response here
@@ -279,6 +278,15 @@ class QueryHandler implements HttpHandler {
         }
         respondWithMsg(exchange, response.toString());
         System.out.println("Finished query: " + cgiArgs._query);
+
+        // Store the query into trie
+        ((IndexerInvertedCompressed) _indexer).insertUserQuery(processedQuery._query);
+        // TODO: check if the word is already in the trie
+        File userLog = new File("data/index/log.idx");
+        if (!userLog.exists()) userLog.createNewFile();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(userLog, true));
+        bw.write(processedQuery._query + "\n");
+        bw.close();
       }
     } catch (Exception e) {
       e.printStackTrace();
