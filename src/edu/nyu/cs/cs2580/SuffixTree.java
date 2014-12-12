@@ -9,6 +9,9 @@ import java.util.*;
 import java.io.*;
 class SuffixTree implements Serializable{
 
+  private int bigramThreshold = 100;
+  private int trigramThreshold = 10;
+  private int leafMinFreq = 5;
   class TreeNode implements Serializable{
     int freq;
     Map<Integer, TreeNode> children;
@@ -27,11 +30,39 @@ class SuffixTree implements Serializable{
   public void insert(List<Integer> ngram, int start, int size) {
     insertIntoTree(ngram, start, start+size);
   }
+  public void insert(int index){
+    if(root.children == null) root.children = new HashMap<Integer, TreeNode>();
+    if(!root.children.containsKey(index)) root.children.put(index, new TreeNode());
+    root.children.get(index).freq++;
+  }
+  public void insert(int first, int second){
+    TreeNode current = root;
+    if(current.children.get(first).freq > bigramThreshold){
+      current = current.children.get(first);
+      if(current.children == null) current.children = new HashMap<Integer, TreeNode>();
+      if(!current.children.containsKey(second)) current.children.put(second, new TreeNode());
+      current.children.get(second).freq++;
+    }
+  }
+  public void insert(int first, int second, int third){
+    TreeNode current = root;
+    if(current.children.get(first).freq > bigramThreshold){
+      current = current.children.get(first);
+      if(current.children.get(second).freq > trigramThreshold){
+        current = current.children.get(second);
+        if(current.children == null) current.children = new HashMap<Integer, TreeNode>();
+        if(!current.children.containsKey(third)) current.children.put(third, new TreeNode());
+        current.children.get(third).freq++;
+      }
+    }
+  }
 
   protected void insertIntoTree(List<Integer> ngram, int start, int height){
     TreeNode current = root;
     for(int i=start; i<height; ++i){
+      // i is the depth of the tree
       int index = ngram.get(i);
+      //each index represents a word
       if(current.children == null) current.children = new HashMap<Integer, TreeNode>();
       if(current.children.containsKey(index) == false) {
         current.children.put(index, new TreeNode());
@@ -42,7 +73,33 @@ class SuffixTree implements Serializable{
       current = current.children.get(index);
     }
   }
-
+  protected void prune(){
+    Set<Integer> keySet = root.children.keySet();
+    TreeNode current = root;
+    TreeNode second;
+    for(Integer key: keySet){
+      current = root.children.get(key);//root->1
+      if(current.children!=null){
+        Set<Integer> firstKeySet = current.children.keySet();
+        for(Integer firstKey: firstKeySet){
+          second = current.children.get(firstKey);
+          if(second.children != null){
+            Set<Integer> secondKeySet = second.children.keySet();
+            int[] duplicateKeySet = new int[secondKeySet.size()];
+            int cnt = 0;
+            for(Integer secondKey: secondKeySet){
+              duplicateKeySet[cnt++] = secondKey;
+            }
+            for(int duplicateKey: duplicateKeySet){
+              if(second.children.get(duplicateKey).freq < leafMinFreq){
+                second.children.remove(duplicateKey);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   public List<Pair<List<Integer>, Integer>> query(List<Integer> ngram) {
     List<Pair<List<Integer>, Integer>> result = new LinkedList<Pair<List<Integer>, Integer>>();
     List<Integer> helper = new ArrayList<Integer>();
@@ -98,9 +155,7 @@ class SuffixTree implements Serializable{
     b.add(5);
     List<Integer> c = new LinkedList<Integer>();
     c.add(1);
-    c.add(2);
     c.add(4);
-    c.add(8);
     List<Integer> d = new LinkedList<Integer>();
     d.add(1);
     d.add(4);
@@ -109,13 +164,15 @@ class SuffixTree implements Serializable{
     SuffixTree tree = new SuffixTree();
     tree.insert(a,0,4);
     tree.insert(b,0,4);
-    tree.insert(c,0,4);
+    tree.insert(c,0,2);
     tree.insert(d,0,4);
-    tree.insert(c,0,4);
+    tree.insert(c,0,2);
     tree.insert(d,0,4);
     tree.insert(d,0,4);
 
     List<Integer> e = new LinkedList<Integer>();
+    e.add(1);
+    e.add(4);
     List<Pair<List<Integer>, Integer>> result = tree.query(e);
     for(Pair<List<Integer>, Integer> list: result){
       System.out.println(list.second);
