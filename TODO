@@ -1,0 +1,10 @@
+1. reduce the delay of N-gram
+2. add snippets
+3. add html page after clicking
+4. concatenate ngram suggestion
+5. phrase detection, suggestion
+6. add interface for query log from ranker to idnexer
+7. indexer should store log everytime a query comes in
+8. reduce the size of suffix tree
+
+Next meeting will be at December 12th, 1pm~3pm!!

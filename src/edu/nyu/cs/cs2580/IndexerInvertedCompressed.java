@@ -194,7 +194,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       }
       // Add word to trie for Project : single word suggestion
       _dictionaryTrie.insert(word);
-      //Insert first word
+      // Add ngram to trie for Project : sentence suggestion
       _ngramSuffixTree.insert(idx);
 
       // for each term add its count.
