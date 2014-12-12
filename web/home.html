@@ -22,6 +22,7 @@
         var encode_uri = 'http://localhost:25813/search?' + encodeURIComponent('query='+
         $('#cont_query').val() + '&ranker=favorite&format=html');
         $('#result').load(encode_uri);
+        $('#suggests').empty().hide();
         }
     };
     
@@ -39,7 +40,9 @@
         $('#gogogo').slideUp();
         $('#result').slideDown();
         $('#back').show();
+        $('#cont_query').val($('#query').val());
         $('#input_field').slideDown();
+        $('#suggests').empty().hide();
         }
     }
   
@@ -79,10 +82,11 @@
     	  $('#cont_query').val($('#query').val());
       	  if(data.indexOf(' ')<0){
       	    $.get('http://localhost:25813/suggest?' + encodeURIComponent('query=' + data + 
-      			'&suggestion=term&ranker=favorite'),handleSuggest);
+      			'&suggestion=term&ranker=favorite'),handleSuggestTerm);
       	  } else {
       	    $.get('http://localhost:25813/suggest?' + encodeURIComponent('query=' + data + 
-  			    '&suggestion=phrase&ranker=favorite'),handleSuggest);
+  			    '&suggestion=phrase&ranker=favorite'),handleSuggestPhrase);
+      	    $('#cont_query').select();
       	  }
       	}
     }
@@ -93,20 +97,36 @@
     	  if(data.length > 2){
     	  if(data.indexOf(' ')<0){
     	    $.get('http://localhost:25813/suggest?' + encodeURIComponent('query=' + data + 
-    			'&suggestion=term&ranker=favorite'),handleSuggest);
+    			'&suggestion=term&ranker=favorite'),handleSuggestTerm);
     	  } else {
     	    $.get('http://localhost:25813/suggest?' + encodeURIComponent('query=' + data + 
-			    '&suggestion=phrase&ranker=favorite'),handleSuggest);
+			    '&suggestion=phrase&ranker=favorite'),handleSuggestPhrase);
     	  }
     	}
     	} else { $('#suggests').hide(); }
     }
 
-    function handleSuggest(data){
+    function handleSuggestTerm(data){
+    	if(data.length>0){
+    		var firstResult = data.substring(0,data.indexOf('\n'));
+    		tag = '<li class="clickable"><a hreg="#">';
+    		data = tag + data;
+    		while(data.indexOf('\n')>0 && data.indexOf('\n')<data.length-1)
+    			data = data.replace("\n","</a></li>" + tag);
+    		$('#suggests').html(data);
+    		$('#suggests').show();
+    		var encode_uri = 'http://localhost:25813/search_sug?' + 
+    				encodeURIComponent('query=' +
+    		        firstResult + '&ranker=favorite&format=html');
+    		$('#result').load(encode_uri);
+    	}
+    };
+    
+    function handleSuggestPhrase(data){
     	if(data.length>0){
     		tag = '<li class="clickable"><a hreg="#">';
     		data = tag + data;
-    		while(data.indexOf('\n')>0)
+    		while(data.indexOf('\n')>0 && data.indexOf('\n')<data.length-1)
     			data = data.replace("\n","</a></li>" + tag);
     		$('#suggests').html(data);
     		$('#suggests').show();
@@ -131,7 +151,7 @@
   $(document).on('mouseover','.clickable',function(){
 	  $(this).siblings().removeClass('highlight'); 
 	  $(this).addClass('highlight');
-	  $('#cont_query').attr("placeholder",$(this).text());
+	  $('#cont_query').val($(this).text());
   });
   
   $(document).on('click','.clickable',function(){
@@ -166,8 +186,9 @@
   style="width:8%; float:left; margin-left:20px">
   </div><br>
   <div id="suggests" class="autocomplete"></div>
-  <div id="result" style="text-align:left; clear:both; font-size: 15px;"></div>
-  <div id="back" style="margin-top:100px">
+  <div id="result" style="text-align:left; clear:both; font-size: 18px;
+  		margin-top:70px;"></div>
+  <div id="back" style="margin-top:30px">
  	<label id="backToSearch">Back to Home Page</label>
   </div>
 </body>

@@ -56,7 +56,7 @@ class QueryHandler implements HttpHandler {
     
     // The type of suggestions we will be using
     public enum SuggestionType {
-    	NONE,
+      NONE,
         TERM,
         PHRASE,
     }
@@ -87,34 +87,34 @@ class QueryHandler implements HttpHandler {
             // Ignored, search engine should never fail upon invalid user input.
           }
         } else if (key.equals("numdocs")) {
-        	try {
-        	_numDocs = Integer.parseInt(val);
+          try {
+          _numDocs = Integer.parseInt(val);
           } catch (NumberFormatException e){
-        	  //ignored
+            //ignored
           }
         } else if (key.equals("numterms")) {
-        	try {
-        	_numTerms = Integer.parseInt(val);
+          try {
+          _numTerms = Integer.parseInt(val);
           } catch (NumberFormatException e){
-        	  //ignored
+            //ignored
           }
         } else if (key.equals("docid")) {
-        	try {
-        	_docid = Integer.parseInt(val);
+          try {
+          _docid = Integer.parseInt(val);
           } catch (NumberFormatException e){
-        	  //ignored
+            //ignored
           }
         } else if (key.equals("sessionid")) {
-        	try {
-        	_sessionid = val;
+          try {
+          _sessionid = val;
           } catch (NumberFormatException e){
-        	  //ignored
+            //ignored
           }
         } else if (key.equals("action")) {
-        	try {
-        	_action = val;
+          try {
+          _action = val;
           } catch (NumberFormatException e){
-        	  //ignored
+            //ignored
           }
         } else if (key.equals("ranker")) {
           try {
@@ -171,13 +171,13 @@ class QueryHandler implements HttpHandler {
   }
   
   private void constructHTMLOutput(final Vector<ScoredDocument> docs,
-		  String query, StringBuffer response) {
-	    for (ScoredDocument doc : docs) {
-	      response.append(response.length() > 0 ? "<br>" : "");
-	      response.append(doc.asHtmlResult(query));
-	    }
-	    response.append(response.length() > 0 ? "<br>" : "");
-	  }
+      String query, StringBuffer response) throws IOException {
+      for (ScoredDocument doc : docs) {
+        response.append(response.length() > 0 ? "<br>" : "");
+        response.append(doc.asHtmlResult(query));
+      }
+      response.append(response.length() > 0 ? "<br>" : "");
+    }
 
   public void handle(HttpExchange exchange) {
     try {
@@ -293,4 +293,3 @@ class QueryHandler implements HttpHandler {
     }
   }
 }
-

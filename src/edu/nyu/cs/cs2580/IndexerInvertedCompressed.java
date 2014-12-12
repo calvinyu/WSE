@@ -141,7 +141,9 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       createDocBody(file, cnt);
       cnt++;
     }
-
+    System.out.println("Pruning...");
+    _ngramSuffixTree.prune();
+    System.out.println("Done");
     System.out.println(
         "Indexed " + Integer.toString(_numDocs) + " docs with " +
             Long.toString(_totalTermFrequency) + " terms.");
@@ -159,7 +161,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       e.printStackTrace();
     }
   }
-
+  //First run!!
   private void processDocument(File file, Vector<Integer> docFrequency, Vector<Integer> termFrequency) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
@@ -171,8 +173,6 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
   private void updateStatistics(String content, Vector<Integer> docFrequency, Vector<Integer> termFrequency) {
     HashSet<Integer> uniqueTerms = new HashSet<Integer>();
     //method member for Project
-    List<Integer> suffix = new ArrayList<Integer>();
-
     Scanner s = new Scanner(content);  // Uses white space by default.
     while (s.hasNext()) {
       String word = s.next();
@@ -189,8 +189,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       // Add word to trie for Project : single word suggestion
       _dictionaryTrie.insert(word);
       // Add ngram to trie for Project : sentence suggestion
-      suffix.add(idx);
-      _ngramSuffixTree.insert(suffix, Math.max(0, suffix.size() - 2), Math.min(2, suffix.size()));
+      _ngramSuffixTree.insert(idx);
 
       // for each term add its count.
       termFrequency.set(idx, termFrequency.get(idx) + 1);
@@ -202,7 +201,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       docFrequency.set(i, docFrequency.get(i) + 1);
     }
   }
-
+  //Second Run!!
   private void createPostingsList(File file, short[][] docLists, short[][] docTermFrequency, short[][] postingsList)
       throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
@@ -219,6 +218,8 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     Scanner s = new Scanner(content);  // Uses white space by default.
     int offset = Short.MIN_VALUE;
     int docsize = 0;
+    int first = -1;
+    int second = -1;
     while (s.hasNext()) {
       String word = s.next();
       int idx = _dictionary.get(word);
@@ -226,6 +227,11 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       uniqueTerms.get(idx).add(offset);
       offset++;
       docsize++;
+      first = second;
+      second = idx;
+      if(first != -1){
+        _ngramSuffixTree.insert(first, second);
+      }
     }
     doc.setLength(docsize);
     s.close();
@@ -240,7 +246,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     }
     if (offset > 32767) System.out.println(docid + " " + offset);
   }
-
+  //Third run!!
   private void createDocBody(File file, int cnt) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
@@ -248,8 +254,17 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
 
     HashMap<Integer, Integer> uniqueTerms = new HashMap<Integer, Integer>();
     Scanner s = new Scanner(content);  // Uses white space by default.
+    int first = -1;
+    int second = -1;
+    int third = -1;
     while (s.hasNext()) {
       String word = s.next();
+      first = second;
+      second = third;
+      third = _dictionary.get(word);
+      if(first != -1 && second != -1){
+        _ngramSuffixTree.insert(first, second, third);
+      }
       if (StopWords.isStopWord(word)) continue;
       int idx = _dictionary.get(word);
       if (!uniqueTerms.containsKey(idx)) uniqueTerms.put(idx, 0);
@@ -324,7 +339,6 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
         }
       }
       reader.close();
-
       System.out.println(Integer.toString(_numDocs) + " documents loaded " +
           "with " + Long.toString(_totalTermFrequency) + " terms!");
     } catch(Exception e) {
@@ -526,8 +540,12 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
   }
 
   public List<Pair<List<Integer>, Integer>> getNgramSuggestion(List<String> ngram) {
+    System.out.println("Query from Ranker");
+    for(String s: ngram) System.out.println(s);
+    System.out.println("End");
     List<Integer> query = new ArrayList<Integer>();
-    for(String s: ngram) query.add(_dictionary.get(s));
+    for(int i=Math.max(0, ngram.size()-2); i < ngram.size(); ++i)
+      query.add(_dictionary.get(ngram.get(i)));
     return _ngramSuffixTree.query(query);
   }
 
