@@ -69,7 +69,7 @@ class ScoredDocument implements Comparable<ScoredDocument> {
     // append snippet
     buf.append("<span style=\"font-size:14px; width:60%\">");
     String prefix = SearchEngine.OPTIONS._corpusPrefix;
-    File correspondingFile = new File(prefix + "\\" + _doc.getTitle());
+    File correspondingFile = new File(prefix + "/" + _doc.getTitle());
     Document DOM = Jsoup.parse(correspondingFile, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
     int index = 0;

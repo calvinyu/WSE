@@ -31,7 +31,6 @@ class LogTrie extends Trie implements Serializable {
 
   protected boolean isValidWord(String s) {
     for(int i=0; i<s.length(); ++i) {
-      System.out.println(s.charAt(i));
       if ((s.charAt(i) < 'a' || s.charAt(i) > 'z') && s.charAt(i) != ' ') return false;
     }
     return true;
