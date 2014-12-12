@@ -172,7 +172,7 @@ class QueryHandler implements HttpHandler {
   }
   
   private void constructHTMLOutput(final Vector<ScoredDocument> docs,
-      String query, StringBuffer response) {
+      String query, StringBuffer response) throws IOException {
       for (ScoredDocument doc : docs) {
         response.append(response.length() > 0 ? "<br>" : "");
         response.append(doc.asHtmlResult(query));
