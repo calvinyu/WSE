@@ -56,7 +56,7 @@ class QueryHandler implements HttpHandler {
     
     // The type of suggestions we will be using
     public enum SuggestionType {
-      NONE,
+    	NONE,
         TERM,
         PHRASE,
     }
@@ -206,7 +206,7 @@ class QueryHandler implements HttpHandler {
             cgiArgs, SearchEngine.OPTIONS, _indexer);
         Query query = new Query(cgiArgs._query);
         query.processQuery();
-        List<String> temp = ((RankerFavorite) ranker).suggestLoggedQuery(query, 4);
+        List<String> temp = ((RankerFavorite) ranker).suggestLoggedQuery(query, 3);
         int numSuggest = 8 - temp.size();
         switch (cgiArgs._suggestionType) {
           case TERM:
@@ -223,6 +223,7 @@ class QueryHandler implements HttpHandler {
         }
         respondWithMsg(exchange, result);
       } else if (uriPath.equals("/prf")) {
+    	  System.out.println(uriQuery);
         // should write response here
         CgiArguments cgiArgs = new CgiArguments(uriQuery);
         Ranker ranker = Ranker.Factory.getRankerByArguments(
@@ -236,11 +237,6 @@ class QueryHandler implements HttpHandler {
         String result = ranker.expandQuery(scoredDocs,
             cgiArgs._query, cgiArgs._numDocs, cgiArgs._numTerms);
         respondWithMsg(exchange, result);
-      } else if (uriPath.equals("/log")) {
-        CgiArguments cgiArgs = new CgiArguments(uriQuery);
-        Logger.log(cgiArgs._sessionid, cgiArgs._query,
-            cgiArgs._docid, cgiArgs._action);
-        respondWithMsg(exchange, "logged!");
       } else {
         System.out.println("Query: " + uriQuery);
 
@@ -271,7 +267,11 @@ class QueryHandler implements HttpHandler {
             constructTextOutput(scoredDocs, response);
             break;
           case HTML:
-            constructHTMLOutput(scoredDocs, cgiArgs._query, response);
+        	if(cgiArgs._query.length() - cgiArgs._query.replace(" ", "").length()>=3){
+        	  String q = ranker.expandQuery(scoredDocs, cgiArgs._query, 3, 2);
+        	  System.out.println("goes here and query is " + q);
+        	  constructHTMLOutput(scoredDocs, q, response);
+        	} else constructHTMLOutput(scoredDocs, cgiArgs._query, response);
             break;
           default:
             // nothing
