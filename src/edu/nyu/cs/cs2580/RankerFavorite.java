@@ -1,6 +1,7 @@
 package edu.nyu.cs.cs2580;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 import edu.nyu.cs.cs2580.QueryHandler.CgiArguments;
 import edu.nyu.cs.cs2580.SearchEngine.Options;
@@ -69,7 +70,6 @@ public class RankerFavorite extends Ranker {
     Collections.sort(ngramQueries, new Comparator<Pair<List<Integer>, Integer>>() {
       @Override
       public int compare(Pair<List<Integer>, Integer> o1, Pair<List<Integer>, Integer> o2) {
-        // TODO: Tune this ranking method
         if (o1.second * o1.first.size() < o2.second * o2.first.size()) return 1;
         else if (o1.second * o1.first.size() > o2.second * o2.first.size()) return -1;
         return 0;
@@ -109,11 +109,63 @@ public class RankerFavorite extends Ranker {
   }
 
   @Override
-  public String 
-  expandQuery(Vector<ScoredDocument> docs, String query, int numDocs, int numTerms){
-    return "";
+  public String expandQuery(Vector<ScoredDocument> docs, String query,
+          int numDocs, int numTerms) {
+	  // dictionary contains all words and their count
+	  HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
+	  // get top docs
+	  for(int i=0; i<numDocs; i++){
+		  int docid = docs.get(i).getDoc()._docid;
+		  for (int j=0;j<20;j++){
+			  // get the term by looking up _terms
+			  String term =((IndexerInvertedCompressed) _indexer)._terms.get(
+					  ((IndexerInvertedCompressed) _indexer)._docBody[docid][2*j]);
+			  // get the number of appearances
+			  int count = ((IndexerInvertedCompressed) _indexer)._docBody[docid][2*j+1];
+			  // 	if exists, add the count, else create an entry
+			  if(dictionary.containsKey(term)){
+				  dictionary.put(term, dictionary.get(term)+count);
+			  } else dictionary.put(term, count);
+		  }
+	  }
+	  // get top terms
+	  dictionary = sortByValues(dictionary);
+	  Set<Entry<String, Integer>> set = dictionary.entrySet();
+	  Iterator<Entry<String, Integer>> iterator = set.iterator();
+	  int totalFrequency = 0;
+	  for (int i=0; i<numTerms; i++) {
+		  Entry<String,Integer> me = iterator.next();
+		  totalFrequency += me.getValue();
+	  }
+	  // write results into a string to return to user
+	  iterator = set.iterator();
+	  String result = "";
+	  for (int i=0; i<numTerms; i++) {
+		  Entry<String,Integer> me = iterator.next();
+		  result += " " + me.getKey();
+	  }
+	  return result.substring(1);
   }
-  private void createLmprob(Document d, Query query,
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private HashMap<String,Integer> sortByValues(HashMap map) { 
+	  List list = new LinkedList(map.entrySet());
+	  // Defined Comparator here
+	  Collections.sort(list, new Comparator() {
+		  public int compare(Object o1, Object o2) {
+			  return ((Comparable) ((Map.Entry) (o2)).getValue()).compareTo(
+					  ((Map.Entry) (o1)).getValue());
+		  }
+	  });
+	  HashMap sortedHashMap = new LinkedHashMap();
+	  for (Iterator it = list.iterator(); it.hasNext();) {
+		  Map.Entry entry = (Map.Entry) it.next();
+		  sortedHashMap.put(entry.getKey(), entry.getValue());
+	  }
+	  return sortedHashMap;
+  }
+  
+	private void createLmprob(Document d, Query query,
                             double lamb, Vector<Double> lmprob) {
     // Cast Document into DocumentIndexed
     DocumentIndexed doc = (DocumentIndexed) d;
