@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>No.13 Search Engine</title>
-  <script src="js/jquery-1.9.1.js"></script>
+  <script src="js/jquery-1.9.1.js"> </script>
   <script>
   $(document).ready(function(){
     $('#back').hide();
@@ -124,12 +124,17 @@
     
     function handleSuggestPhrase(data){
     	if(data.length>0){
+    		var firstResult = data.substring(0,data.indexOf('\n'));
     		tag = '<li class="clickable"><a hreg="#">';
     		data = tag + data;
     		while(data.indexOf('\n')>0 && data.indexOf('\n')<data.length-1)
     			data = data.replace("\n","</a></li>" + tag);
     		$('#suggests').html(data);
     		$('#suggests').show();
+    		var encode_uri = 'http://localhost:25813/search_sug?' + 
+				encodeURIComponent('query=' +
+	        	firstResult + '&ranker=favorite&format=html');
+			$('#result').load(encode_uri);
     	}
     };
     
