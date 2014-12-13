@@ -1,6 +1,6 @@
 V 1. reduce the delay of N-gram
-2. add snippets for each query word
-3. add html page after clicking
+V (some modification) 2. add snippets for each query word
+V 3. add html page after clicking
 V 4. concatenate ngram suggestion
 5. phrase detection, suggestion
 V 6. add interface for query log from ranker to idnexer
