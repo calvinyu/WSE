@@ -49,7 +49,7 @@ input, textarea, select, label {
   padding: 0 9px;
   color: white;
   text-align: left; 
-  font-size: 20px;
+  font-size: 18px;
   text-shadow: 0 1px black;
   background: #2b3e5d;
   border: 1px solid #15243b;
@@ -129,9 +129,9 @@ input, textarea, select, label {
   color: white;
   width: 30%;
   text-align: left; 
-  font-size: 20px;
+  font-size: 18px;
   text-shadow: 0 1px black;
-  margin-top:15px;
+  margin-top:17px;
   border: 1px solid #15243b;
   border-top-color: #0d1827;
   border-radius: 4px;
@@ -151,6 +151,8 @@ input, textarea, select, label {
 
 .clickable {
 	cursor: pointer;
+	overflow: hidden;
+	height: 20px;
 	list-style-type: none;
 }
 
