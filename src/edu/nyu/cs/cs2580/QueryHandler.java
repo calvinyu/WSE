@@ -171,10 +171,10 @@ class QueryHandler implements HttpHandler {
   }
   
   private void constructHTMLOutput(final Vector<ScoredDocument> docs,
-      String query, StringBuffer response) throws IOException {
+      String query, StringBuffer response, boolean expanded) throws IOException {
       for (ScoredDocument doc : docs) {
         response.append(response.length() > 0 ? "<br>" : "");
-        response.append(doc.asHtmlResult(query));
+        response.append(doc.asHtmlResult(query, expanded));
       }
       response.append(response.length() > 0 ? "<br>" : "");
     }
@@ -270,8 +270,8 @@ class QueryHandler implements HttpHandler {
         	if(cgiArgs._query.length() - cgiArgs._query.replace(" ", "").length()>=3){
         	  String q = ranker.expandQuery(scoredDocs, cgiArgs._query, 3, 2);
         	  System.out.println("goes here and query is " + q);
-        	  constructHTMLOutput(scoredDocs, q, response);
-        	} else constructHTMLOutput(scoredDocs, cgiArgs._query, response);
+        	  constructHTMLOutput(scoredDocs, q, response, true);
+        	} else constructHTMLOutput(scoredDocs, cgiArgs._query, response, false);
             break;
           default:
             // nothing

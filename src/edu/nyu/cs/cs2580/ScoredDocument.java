@@ -59,7 +59,7 @@ class ScoredDocument implements Comparable<ScoredDocument> {
     return (this._score > o._score) ? 1 : -1;
   }
 
-  public String asHtmlResult(String query) throws IOException {
+  public String asHtmlResult(String query, boolean expanded) throws IOException {
 	// append title and hyperlink information
     StringBuffer buf = new StringBuffer();
     String hyperlink1 = "file:///D:/In%20USA/Courses/Web%20Search%20Engines/" + 
@@ -81,14 +81,21 @@ class ScoredDocument implements Comparable<ScoredDocument> {
 	if(content.contains(" " + query + " ")){
 		addToBuf(buf, content, query);
 	} else if (query.contains(" ")){
-		// else should also try to present something if it's a phrase
-		String firstPart = query.substring(0, query.lastIndexOf(" "));
-		if(content.contains(firstPart)){
-			addToBuf(buf, content, firstPart);
+		if(expanded == false){
+			// else should also try to present something if it's a phrase
+			String firstPart = query.substring(0, query.lastIndexOf(" "));
+			if(content.contains(firstPart)){
+				addToBuf(buf, content, firstPart);
+			} else {
+				String secondPart = query.substring(query.indexOf(" ") + 1);
+				if (content.contains(secondPart))
+					addToBuf(buf, content, secondPart);
+			}
 		} else {
-			String secondPart = query.substring(query.indexOf(" ") + 1);
-			if (content.contains(secondPart))
-				addToBuf(buf, content, secondPart);
+			String word1 = query.substring(0, query.lastIndexOf(" "));
+			String word2 = query.substring(query.indexOf(" ") + 1);
+			addToBuf(buf, content, word1);
+			addToBuf(buf, content, word2);
 		}
 	}
 	// wrap and return it
@@ -98,15 +105,21 @@ class ScoredDocument implements Comparable<ScoredDocument> {
 
   public static void addToBuf(StringBuffer buf, String content, String query) {
 	  int index = content.indexOf(query);
+	  if(index != -1){
 	  int start = content.substring(0, index).lastIndexOf(". ");
 	  if(start != -1){
-		buf.append(content.substring(start + 1, index) + "<b><em>" + query + "</em></b>"
-				+ content.substring(index + query.length(), 
+		if(index - start < 50)
+			buf.append("..." + content.substring(start + 1, index) + "<b><em>" + 
+					query + "</em></b>" + content.substring(index + query.length(), 
 						index + query.length() + 40) + "...");
+		else buf.append("..." + content.substring((index<50?0:(index-50)) , index) + 
+				"<b><em>" + query + "</em></b>" + content.substring(index + 
+						query.length(), index + query.length() + 40) + "...");
 	  } else {
 		buf.append("<em><b>" + query + "</b></em>" + content.substring(index + 
 				query.length(), index + query.length() + 40)  + " ... ");
 	  }
+	}
   }
 
 }
