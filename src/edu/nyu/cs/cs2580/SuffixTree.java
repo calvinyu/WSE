@@ -127,10 +127,12 @@ class SuffixTree implements Serializable{
       }
     }
     else{
-      if(root.children == null){
+      if(root.freq>0){
         List<Integer> ngram = new LinkedList<Integer>();
         for(Integer i:helper) ngram.add(i);
         result.add(new Pair<List<Integer>, Integer>(ngram, root.freq));
+      }
+      if(root.children == null){
         return;
       }
       Set<Integer> keySet = root.children.keySet();
