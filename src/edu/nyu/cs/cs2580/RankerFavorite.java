@@ -64,14 +64,19 @@ public class RankerFavorite extends Ranker {
   public List<String> suggestNgrams(Query query, int num) {
     System.out.println(query._query);
     System.out.println(num);
-    List<Pair<List<Integer>, Integer>> ngramQueries =
+    List<Pair<List<Integer>, Integer>> tmpNgramQueries =
         ((IndexerInvertedCompressed) _indexer).getNgramSuggestion(query._tokens);
-    System.out.println("Before sorting...");
+    List<Pair<List<Integer>, Integer>> ngramQueries =
+        new LinkedList<Pair<List<Integer>, Integer>>();
+    for (Pair<List<Integer>, Integer> p : tmpNgramQueries) {
+      String lastWord = ((IndexerInvertedCompressed) _indexer)._terms.get((p.first.get(p.first.size() - 1)));
+      if (!StopWords.isStopWord(lastWord)) ngramQueries.add(p);
+    }
     Collections.sort(ngramQueries, new Comparator<Pair<List<Integer>, Integer>>() {
       @Override
       public int compare(Pair<List<Integer>, Integer> o1, Pair<List<Integer>, Integer> o2) {
-        if (o1.second * o1.first.size() < o2.second * o2.first.size()) return 1;
-        else if (o1.second * o1.first.size() > o2.second * o2.first.size()) return -1;
+        if (o1.second * (o1.first.size() - 1) < o2.second * (o2.first.size() - 1)) return 1;
+        else if (o1.second * (o1.first.size() - 1) > o2.second * (o2.first.size() - 1)) return -1;
         return 0;
       }
     });

@@ -280,13 +280,15 @@ class QueryHandler implements HttpHandler {
         System.out.println("Finished query: " + cgiArgs._query);
 
         // Store the query into trie
-        ((IndexerInvertedCompressed) _indexer).insertUserQuery(processedQuery._query);
-        // TODO: check if the word is already in the trie
-        File userLog = new File("data/index/log.idx");
-        if (!userLog.exists()) userLog.createNewFile();
-        BufferedWriter bw = new BufferedWriter(new FileWriter(userLog, true));
-        bw.write(processedQuery._query + "\n");
-        bw.close();
+        if (uriPath.equals("/search")) {
+          ((IndexerInvertedCompressed) _indexer).insertUserQuery(processedQuery._query);
+          // TODO: check if the word is already in the trie
+          File userLog = new File("data/index/log.idx");
+          if (!userLog.exists()) userLog.createNewFile();
+          BufferedWriter bw = new BufferedWriter(new FileWriter(userLog, true));
+          bw.write(processedQuery._query + "\n");
+          bw.close();
+        }
       }
     } catch (Exception e) {
       e.printStackTrace();
