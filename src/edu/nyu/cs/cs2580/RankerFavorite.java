@@ -137,11 +137,7 @@ public class RankerFavorite extends Ranker {
 	  dictionary = sortByValues(dictionary);
 	  Set<Entry<String, Integer>> set = dictionary.entrySet();
 	  Iterator<Entry<String, Integer>> iterator = set.iterator();
-	  int totalFrequency = 0;
-	  for (int i=0; i<numTerms; i++) {
-		  Entry<String,Integer> me = iterator.next();
-		  totalFrequency += me.getValue();
-	  }
+
 	  // write results into a string to return to user
 	  iterator = set.iterator();
 	  String result = "";
