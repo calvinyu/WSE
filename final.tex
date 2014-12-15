@@ -4,10 +4,11 @@
 \usepackage{color}
 \usepackage{subcaption}
 \usepackage{afterpage}
+\usepackage{comment}
 
-\setlength{\textwidth}{460pt}
 \setlength{\oddsidemargin}{10pt}
-
+\usepackage{geometry}
+\geometry{letterpaper, portrait, margin=1.2in}
 \title{CSCI-GA 2580 Final Project\\
 Query Suggestions and Instant Search Based on Wikipedia Corpus}
 \author{Kentaro Hanaki \and Yu-Chih Yu \and Shuang Zhou}
@@ -25,13 +26,73 @@ Instant search perfectly complements query suggestion. With instant search, user
 This project implements a search engine that adopt this new interaction mode. In the indexing time, our search engine mines the Wikipedia corpus provided in the course assignments and store words and frequencies into Trie and the frequency of n-grams into suffix tree. In the serve time, it also accumulates the users' queries into Trie. For any partial query (prefix or words), our search engine finds most likely completion from these data structures and then recommends a list of relevant queries to users' input.
 Meanwhile, the results for the most probable query from the recommendation list along with document snippets are served instantly. All interactions are Ajax-based and no static elements are updated for queries, therefore, the traffic is minimized.
 
-Our core data structure for query suggestion is Trie, which is essentially a prefix tree \cite{intro}. And it's a great data structure to store dynamic sets \cite{wikipedia}. Query suggestion signals come from two sources: corpus statistics \cite{sigir} and user log. 
-
 Instant search is first used in Google, and now adopted by some other popular search engines (e.g. Baidu). A lot of our instant search design is inspired by Google.
 
 \section{Design and Architecture}
+Our first thought was to store every suffix of the sentences in the corpus to the suffix trie because we do not have query log history, the entire corpus would be a good source for us to give suggestion. But storing the entire corpus not only runs longer to index and load but also uses a lot more memory. After some experimentation, we decided to separate the suggestion into three parts - unigram suggestion, n-gram suggestion and suggestion based on user log \cite{sigir}.
 
+The first part is unigram suggestion. When the user types some prefix word, the search engine will suggest words that share the same prefix that are ranked by the frequency of the word appears in the corpus. We decided to do this because the more frequent the word, the more likely the user will want to start to  search with the word.
+
+The second part is n-gram suggestion. In order to reduce the size of the suggestion data structure, we decided not to use suffix trie\cite{intro}. Alternatively, we treat each word as a smallest unit in the data structure, i.e., representing each word with a number. So a sentence will become a short sequence of numbers instead of a long sequence of letters and spaces. These sequence can be put into the suffix tree. But putting all suffix numbers of a sentence is not efficient enough, so instead of putting every suffix, we set a maximum length of the suffix to 3, simply because setting it to 2 won’t work well and setting it to 4 is not feasible for us. Finally we reduced the size of the tree by deleteing branches that are not frequent (100 times for single word, 10 tims for bi-gram and 5 times for tri-gram)
+
+The thrid part is user logged suggestion. It is similiar to the first part except that it stores the all user logged queries into Trie instead of only a single word from the dictionary.
+\subsection{What are the major components of your system?}
+\includegraphics[scale=0.5] {WorkFlow.png}
 \section{Implementation Details}
+\subsection{Details of each individual components, e.g., algorithms, APIs, etc.}
+\begin{enumerate}
+  \item single word
+  \begin{itemize}
+  \item  Indexing: store every word from the data set in a single Trie with their frequencies.
+  \item Suggesting: return all words that the prefix match the query along with the frequencies. 
+  \item Ranking: return the words with top 10 frequencies.
+\end{itemize}
+	
+	
+  \item multiple words
+  
+  \begin{itemize} 
+	\item Indexing: store uni-gram, bi-gram, and tri-gram of all adjacent words from the data set into a suffix tree.
+	\item Suggestion: return all N-grams that the prefix match the query along with frequencies.
+	\item Ranking return the N-grams with top 10 frequencies.
+\end{itemize}
+  \item logged query
+  \begin{itemize} 
+
+\item Indexing: store the whole query issued by the user including the space in a trie along with their frequencies.
+\item Suggesting: return all queries that the prefix match the query along with their frequencies.
+\item Ranking: return the queries with the top 10 frequencies.
+\end{itemize}
+
+\item
+
+Merge the suggestions from the above three components and return 10 results to front end.
+
+\item
+
+Front end put an event listener on the input box, and request suggestions whenever the event is triggered (e.g. user stops typing), then the page instantly load the results of the most likely query.
+	
+
+\end{enumerate}
+
+
+\subsection{Include how to run your code}
+Please see readme.txt
+%readme should be copied from here
+\begin{comment}
+Step  1: unzip source.zip
+Step  2: cd source
+Step  3: Then compile code
+	javac -cp lib/jsoup-1.8.1.jar src/edu/nyu/cs/cs2580/*.java
+Step  4: Build index before running the server
+	java -cp src:lib/jsoup-1.8.1.jar -Xmx4G edu.nyu.cs.cs2580.SearchEngine --mode=index --options=conf/engine.conf
+Step  5: To start to server listening at port 25813
+	java -cp src:lib/jsoup-1.8.1.jar -Xmx4G  edu.nyu.cs.cs2580.SearchEngine --mode=serve --options=conf/engine.conf --port=25813
+Step 6: Alternatively, step 3 through 5 can be combined using a single command
+	./run.sh or sh run.sh
+Step 7: Open web/home.html to start enjoying our search engine
+\end{comment}
+		
 
 \section{Evaluation}
 
