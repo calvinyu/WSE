@@ -8,7 +8,7 @@
 
 \setlength{\oddsidemargin}{10pt}
 \usepackage{geometry}
-\geometry{letterpaper, portrait, margin=1.2in}
+\geometry{letterpaper, portrait, margin=1in}
 \title{CSCI-GA 2580 Final Project\\
 Query Suggestions and Instant Search Based on Wikipedia Corpus}
 \author{Kentaro Hanaki \and Yu-Chih Yu \and Shuang Zhou}
@@ -37,7 +37,15 @@ The second part is n-gram suggestion. In order to reduce the size of the suggest
 
 The thrid part is user logged suggestion. It is similiar to the first part except that it stores the all user logged queries into Trie instead of only a single word from the dictionary.
 \subsection{What are the major components of your system?}
-\includegraphics[scale=0.5] {WorkFlow.png}
+\begin{figure}
+\centering
+\setlength\fboxrule{0.5pt}
+\includegraphics[scale=0.6] {WorkFlow.png}
+\caption{This is the flow diagram of our project. Example: when user types "Google", it will get ["google map", "google translate"...] and also the instant search result from front end. And then front end gets result from ranker and then indexer ...}
+\label{fig:WorkFlow.png}
+\end{figure}
+see Figure ~\ref{fig:WorkFlow.png}
+
 \section{Implementation Details}
 \subsection{Details of each individual components, e.g., algorithms, APIs, etc.}
 \begin{enumerate}
@@ -172,8 +180,8 @@ Finally, there is an interesting difference in the suggestions for `michigan'. O
 
 \begin{thebibliography}{1}
 
-\bibitem{intro} T. H. Cormen, C. E. Leiserson, R. L. Rivest and C. Stein. {\em Introduction to Algorithms, third edition}, June 2007.
 \bibitem{sigir} H. Bast and I. Weber. Type less, find more: fast autocompletion search with a succinct index. In {\em SIGIR}, pages 364-€“371, 2006.
+\bibitem{intro} T. H. Cormen, C. E. Leiserson, R. L. Rivest and C. Stein. {\em Introduction to Algorithms, third edition}, June 2007.
 
 \end{thebibliography}
 
