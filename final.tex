@@ -23,20 +23,19 @@ Many advanced features are being incorporated into search engines, among which t
 
 Instant search perfectly complements query suggestion. With instant search, users can not only see the suggested ``query'', but also searching results, which allow users to be informed of what they are looking for, and thus allow them to refine their query based on retrieved results. Using this two techniques, we provide a more interactive search engine. And with rapid feedback, users can organize their queries more accurately and get more precise results.
 
-This project implements a search engine that adopt this new interaction mode. In the indexing time, our search engine mines the Wikipedia corpus provided in the course assignments and store words and frequencies into Trie and the frequency of n-grams into suffix tree. In the serve time, it also accumulates the users' queries into Trie. For any partial query (prefix or words), our search engine finds most likely completion from these data structures and then recommends a list of relevant queries to users' input.
-Meanwhile, the results for the most probable query from the recommendation list along with document snippets are served instantly. All interactions are Ajax-based and no static elements are updated for queries, therefore, the traffic is minimized.
-
-Instant search is first used in Google, and now adopted by some other popular search engines (e.g. Baidu). A lot of our instant search design is inspired by Google.
+This project implements a search engine that adopt this new interaction mode. In the indexing time, our search engine mines the Wikipedia corpus provided in the course assignments and store words and frequencies into Trie and the frequency of n-grams into suffix tree. In the serve time, it also accumulates the users' queries into Trie. For any partial query (prefix or words), our search engine finds most likely completion from the mined data and then recommends a list of relevant queries to users' input.
+Meanwhile, the results for the most probable query from the recommendation list along with document snippets are served instantly\footnote{Instant search is first used in Google, and now adopted by some other popular search engines (e.g. Baidu). A lot of our instant search design is inspired by Google.}. All interactions are Ajax-based and no static elements are updated for queries, therefore, the traffic is minimized.
 
 \section{Design and Architecture}
-Our first thought was to store every suffix of the sentences in the corpus to the suffix trie because we do not have query log history, the entire corpus would be a good source for us to give suggestion. But storing the entire corpus not only runs longer to index and load but also uses a lot more memory. After some experimentation, we decided to separate the suggestion into three parts - unigram suggestion, n-gram suggestion and suggestion based on user log \cite{sigir}.
 
-The first part is unigram suggestion. When the user types some prefix word, the search engine will suggest words that share the same prefix that are ranked by the frequency of the word appears in the corpus. We decided to do this because the more frequent the word, the more likely the user will want to start to  search with the word.
+The architecture of our search engine is given in Figure \ref{fig:WorkFlow.png}. We separated the query suggestion into three parts --- word (unigram) suggestion, phrase (n-gram) suggestion and suggestion based on user log \cite{sigir}. Our initial thought was to store every suffix of the sentences in the corpus to the suffix trie because we do not have query log history, the entire corpus would be a good source for us to give suggestion. But storing the entire corpus not only runs longer to index and load but also uses a lot more memory. Therefore, we decided to separate the corpus-based suggestion into word suggestion and phrase suggestion.
 
-The second part is n-gram suggestion. In order to reduce the size of the suggestion data structure, we decided not to use suffix trie\cite{intro}. Alternatively, we treat each word as a smallest unit in the data structure, i.e., representing each word with a number. So a sentence will become a short sequence of numbers instead of a long sequence of letters and spaces. These sequence can be put into the suffix tree. But putting all suffix numbers of a sentence is not efficient enough, so instead of putting every suffix, we set a maximum length of the suffix to 3, simply because setting it to 2 wonÕt work well and setting it to 4 is not feasible for us. Finally we reduced the size of the tree by deleteing branches that are not frequent (100 times for single word, 10 tims for bi-gram and 5 times for tri-gram)
+The first part is word suggestion. When a user types some word prefix, the search engine suggests words that share the same prefix with the order of frequencies in the corpus. Our assumption is that the more frequent the word is, the more likely the user wants to start to search with the word. Ideally, the ranking should be done based on frequencies in query logs, but we would expect that corpus frequency is an approximation of query log frequency.
 
-The thrid part is user logged suggestion. It is similiar to the first part except that it stores the all user logged queries into Trie instead of only a single word from the dictionary.
-\subsection{What are the major components of your system?}
+The second part is phrase suggestion. In order to reduce the size of the suggestion data structure, we decided not to use suffix trie \cite{intro}. Alternatively, we treat each word as a smallest unit in the data structure, i.e., representing each word with a number. So a sentence will become a short sequence of numbers instead of a long sequence of letters and spaces. These sequence can be put into the suffix tree. But putting all suffix numbers of a sentence is not efficient enough, so instead of putting every suffix, we set a maximum length of the suffix to 3, simply because setting it to 2 did not work well and setting it to 4 uses too much memory. Finally we reduced the size of the tree by pruning branches that are not frequent (100 times for single word, 10 times for bigram and 5 times for trigram).
+
+The thrid part is user logged suggestion. It is similar to the first part except that it stores all the user queries into Trie instead of only a single word from the dictionary.
+
 \begin{figure}
 \centering
 \setlength\fboxrule{0.5pt}
@@ -44,37 +43,37 @@ The thrid part is user logged suggestion. It is similiar to the first part excep
 \caption{This is the flow diagram of our project. Example: when user types "Google", it will get ["google map", "google translate"...] and also the instant search result from front end. And then front end gets result from ranker and then indexer ...}
 \label{fig:WorkFlow.png}
 \end{figure}
-see Figure ~\ref{fig:WorkFlow.png}
 
 \section{Implementation Details}
-\subsection{Details of each individual components, e.g., algorithms, APIs, etc.}
+
+In this section, we briefly go over our implementations. The instruction about how to run the program is given in read me.txt in our repository. 
 \begin{enumerate}
-  \item single word
+  \item Single word suggestion
   \begin{itemize}
   \item  Indexing: store every word from the data set in a single Trie with their frequencies.
-  \item Suggesting: return all words that the prefix match the query along with the frequencies. 
-  \item Ranking: return the words with top 10 frequencies.
+  \item Suggestion: return all words that the prefix match the query along with the frequencies. 
+  \item Ranking: return the words with top 8 frequencies.
 \end{itemize}
 	
 	
-  \item multiple words
+  \item Phrase suggestion
   
   \begin{itemize} 
 	\item Indexing: store uni-gram, bi-gram, and tri-gram of all adjacent words from the data set into a suffix tree.
 	\item Suggestion: return all N-grams that the prefix match the query along with frequencies.
-	\item Ranking return the N-grams with top 10 frequencies.
+	\item Ranking: return the N-grams with top 8 frequencies.
 \end{itemize}
-  \item logged query
+  \item Logged query suggestion
   \begin{itemize} 
 
 \item Indexing: store the whole query issued by the user including the space in a trie along with their frequencies.
-\item Suggesting: return all queries that the prefix match the query along with their frequencies.
-\item Ranking: return the queries with the top 10 frequencies.
+\item Suggestion: return all queries that the prefix match the query along with their frequencies.
+\item Ranking: return the queries with up to top 4 frequencies.
 \end{itemize}
 
 \item
 
-Merge the suggestions from the above three components and return 10 results to front end.
+Merge the suggestions from the above three components and return 8 results to front end.
 
 \item
 
@@ -83,9 +82,6 @@ Front end put an event listener on the input box, and request suggestions whenev
 
 \end{enumerate}
 
-
-\subsection{Include how to run your code}
-Please see readme.txt
 %readme should be copied from here
 \begin{comment}
 Step  1: unzip source.zip
