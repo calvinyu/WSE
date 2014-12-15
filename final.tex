@@ -19,7 +19,7 @@ Query Suggestions and Instant Search Based on Wikipedia Corpus}
 \section{Introduction}
 As search engines are playing an increasingly important role, the expectations of search engines also increase. The historic purpose of search engines is finding relevant documents on the Internet, but nowadays this is far from enough.
 
-Many advanced features are being incorporated into search engines, among which there are two interesting ones: query suggestion and instant search. Query suggestion is useful in two ways: First, users do not have to input the entire query and can choose from suggestions. Second, suggestions can provide a general idea about what users want to search when they are not sure.
+Many advanced features are being incorporated into search engines, among which there are two interesting ones: query suggestion and instant search \cite{sigir}. Query suggestion is useful in two ways: First, users do not have to input the entire query and can choose from suggestions. Second, suggestions can provide a general idea about what users want to search when they are not sure.
 
 Instant search perfectly complements query suggestion. With instant search, users can not only see the suggested ``query'', but also searching results, which allow users to be informed of what they are looking for, and thus allow them to refine their query based on retrieved results. Using this two techniques, we provide a more interactive search engine. And with rapid feedback, users can organize their queries more accurately and get more precise results.
 
@@ -28,7 +28,7 @@ Meanwhile, the results for the most probable query from the recommendation list 
 
 \section{Design and Architecture}
 
-The architecture of our search engine is given in Figure \ref{fig:WorkFlow.png}. We separated the query suggestion into three parts --- word (unigram) suggestion, phrase (n-gram) suggestion and suggestion based on user log \cite{sigir}. Our initial thought was to store every suffix of the sentences in the corpus to the suffix trie because we do not have query log history, the entire corpus would be a good source for us to give suggestion. But storing the entire corpus not only runs longer to index and load but also uses a lot more memory. Therefore, we decided to separate the corpus-based suggestion into word suggestion and phrase suggestion.
+The architecture of our search engine is given in Figure \ref{fig:WorkFlow.png}. We separated the query suggestion into three parts --- word (unigram) suggestion, phrase (n-gram) suggestion and suggestion based on user log. Our initial thought was to store every suffix of the sentences in the corpus to the suffix trie because we do not have query log history, the entire corpus would be a good source for us to give suggestion. But storing the entire corpus not only runs longer to index and load but also uses a lot more memory. Therefore, we decided to separate the corpus-based suggestion into word suggestion and phrase suggestion.
 
 The first part is word suggestion. When a user types some word prefix, the search engine suggests words that share the same prefix with the order of frequencies in the corpus. Our assumption is that the more frequent the word is, the more likely the user wants to start to search with the word. Ideally, the ranking should be done based on frequencies in query logs, but we would expect that corpus frequency is an approximation of query log frequency.
 
@@ -40,7 +40,7 @@ The thrid part is user logged suggestion. It is similar to the first part except
 \centering
 \setlength\fboxrule{0.5pt}
 \includegraphics[scale=0.6] {WorkFlow.png}
-\caption{This is the flow diagram of our project. Example: when user types "Google", it will get ["google map", "google translate"...] and also the instant search result from front end. And then front end gets result from ranker and then indexer ...}
+\caption{This is the flow diagram of our project. Example: when user types "Google", it will get ["google map", "google translate"...] and also the instant search result from front end. And then front end gets result from ranker and then indexer and finally interact with our data structure.}
 \label{fig:WorkFlow.png}
 \end{figure}
 
@@ -176,7 +176,7 @@ Finally, there is an interesting difference in the suggestions for `michigan'. O
 
 \begin{thebibliography}{1}
 
-\bibitem{sigir} H. Bast and I. Weber. Type less, find more: fast autocompletion search with a succinct index. In {\em SIGIR}, pages 364-€“371, 2006.
+\bibitem{sigir} H. Bast and I. Weber. Type less, find more: fast autocompletion search with a succinct index. In {\em SIGIR}, pages 364-Â€Â“371, 2006.
 \bibitem{intro} T. H. Cormen, C. E. Leiserson, R. L. Rivest and C. Stein. {\em Introduction to Algorithms, third edition}, June 2007.
 
 \end{thebibliography}
