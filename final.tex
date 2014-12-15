@@ -32,9 +32,9 @@ The architecture of our search engine is given in Figure \ref{fig:WorkFlow.png}.
 
 The first part is word suggestion. When a user types some word prefix, the search engine suggests words that share the same prefix with the order of frequencies in the corpus. Our assumption is that the more frequent the word is, the more likely the user wants to start to search with the word. Ideally, the ranking should be done based on frequencies in query logs, but we would expect that corpus frequency is an approximation of query log frequency.
 
-The second part is phrase suggestion. In order to reduce the size of the suggestion data structure, we decided not to use suffix trie \cite{intro}. Alternatively, we treat each word as a smallest unit in the data structure, i.e., representing each word with a number. So a sentence will become a short sequence of numbers instead of a long sequence of letters and spaces. These sequence can be put into the suffix tree. But putting all suffix numbers of a sentence is not efficient enough, so instead of putting every suffix, we set a maximum length of the suffix to 3, simply because setting it to 2 did not work well and setting it to 4 uses too much memory. Finally we reduced the size of the tree by pruning branches that are not frequent (100 times for single word, 10 times for bigram and 5 times for trigram).
+The second part is phrase suggestion. In order to reduce the size of the suggestion data structure, we decided not to use suffix trie \cite{intro}. Alternatively, we treat each word as a smallest unit in the data structure, i.e., representing each word with a number. So a sentence will become a short sequence of numbers instead of a long sequence of letters and spaces. These sequence can be put into the suffix tree. But putting all suffix numbers of a sentence is not efficient enough, so instead of putting every suffix, we set a maximum length of the suffix to 3, simply because setting it to 2 does not work well and setting it to 4 uses too much memory. Finally we reduced the size of the tree by pruning branches that are not frequent (100 times for single word, 10 times for bigram and 5 times for trigram).
 
-The thrid part is user logged suggestion. It is similar to the first part except that it stores all the user queries into Trie instead of only a single word from the dictionary.
+The third part is user logged suggestion. It is similar to the first part except that it stores all the user queries into Trie instead of only a single word from the dictionary.
 
 \begin{figure}
 \centering
@@ -59,7 +59,7 @@ In this section, we briefly go over our implementations. The instruction about h
   \item Phrase suggestion
   
   \begin{itemize} 
-	\item Indexing: store uni-gram, bi-gram, and tri-gram of all adjacent words from the data set into a suffix tree.
+	\item Indexing: store uni-gram, bi-gram, and trigram of all adjacent words from the data set into a suffix tree.
 	\item Suggestion: return all N-grams that the prefix match the query along with frequencies.
 	\item Ranking: return the N-grams with top 8 frequencies.
 \end{itemize}
