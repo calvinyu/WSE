@@ -100,9 +100,11 @@ class SuffixTree implements Serializable{
       }
     }
   }
-  public List<Pair<List<Integer>, Integer>> query(List<Integer> ngram) {
+  public List<Pair<List<Integer>, Integer>> query(List<Integer> ngram, List<Integer> prefix) {
     List<Pair<List<Integer>, Integer>> result = new LinkedList<Pair<List<Integer>, Integer>>();
     List<Integer> helper = new ArrayList<Integer>();
+    for(int i=0; i<prefix.size(); ++i)
+      helper.add(prefix.get(i));
     System.out.println("Query count:" + ngram.size());
     traverseTree(ngram, result, root, 0, helper);
     System.out.println("Done traversing!");
@@ -175,7 +177,7 @@ class SuffixTree implements Serializable{
     List<Integer> e = new LinkedList<Integer>();
     e.add(1);
     e.add(4);
-    List<Pair<List<Integer>, Integer>> result = tree.query(e);
+    /*List<Pair<List<Integer>, Integer>> result = tree.query(e);
     for(Pair<List<Integer>, Integer> list: result){
       System.out.println(list.second);
       for(Integer i: list.first){
@@ -183,7 +185,7 @@ class SuffixTree implements Serializable{
       }
       System.out.println();
     }
-
+*/
   }
 
 

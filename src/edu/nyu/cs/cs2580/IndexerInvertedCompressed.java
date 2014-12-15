@@ -544,9 +544,12 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     for(String s: ngram) System.out.println(s);
     System.out.println("End");
     List<Integer> query = new ArrayList<Integer>();
+    List<Integer> prefix = new ArrayList<Integer>();
+    for(int i=0; i<Math.max(0, ngram.size()-2); ++i)
+      prefix.add(_dictionary.get(ngram.get(i)));
     for(int i=Math.max(0, ngram.size()-2); i < ngram.size(); ++i)
       query.add(_dictionary.get(ngram.get(i)));
-    return _ngramSuffixTree.query(query);
+    return _ngramSuffixTree.query(query, prefix);
   }
 
   public void insertUserQuery(String s) {
