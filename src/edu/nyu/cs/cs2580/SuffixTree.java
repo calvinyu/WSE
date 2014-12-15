@@ -109,10 +109,8 @@ class SuffixTree implements Serializable{
     traverseTree(ngram, result, root, 0, helper);
     System.out.println("Done traversing!");
     System.out.println("Result count: " + result.size());
-    int count = 0;
     System.out.println("First ten results");
     for(Pair<List<Integer>, Integer> pair: result) {
-      if(count++>10) break;
       for(Integer list: pair.first) System.out.printf("%d ", list);
       System.out.println("Freq is " + pair.second);
     }
@@ -141,7 +139,7 @@ class SuffixTree implements Serializable{
       for(Integer key: keySet){
         helper.add(key);
         traverseTree(query, result, root.children.get(key), index+1, helper);
-        helper.remove(index);
+        helper.remove(helper.size()-1);
       }
     }
   }
