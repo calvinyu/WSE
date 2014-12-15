@@ -207,15 +207,18 @@ class QueryHandler implements HttpHandler {
         Query query = new Query(cgiArgs._query);
         query.processQuery();
         List<String> temp = ((RankerFavorite) ranker).suggestLoggedQuery(query, 3);
-        int numSuggest = 8 - temp.size();
+        List<String> corpusSuggestion = new LinkedList<String>();
         switch (cgiArgs._suggestionType) {
           case TERM:
-            temp.addAll(((RankerFavorite) ranker).suggestUnigram(query, numSuggest));
+            corpusSuggestion = ((RankerFavorite) ranker).suggestUnigram(query, 8);
             break;
           case PHRASE:
-            temp.addAll(((RankerFavorite) ranker).suggestNgrams(query, numSuggest));
+            corpusSuggestion = ((RankerFavorite) ranker).suggestNgrams(query, 8);
             break;
           default:
+        }
+        for (String s : corpusSuggestion) {
+          if (!temp.contains(s) && temp.size() < 8) temp.add(s);
         }
         String result = "";
         for (String s : temp) {
