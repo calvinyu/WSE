@@ -33,11 +33,13 @@ Our first thought was to store every suffix of the sentences in the corpus to th
 
 The first part is unigram suggestion. When the user types some prefix word, the search engine will suggest words that share the same prefix that are ranked by the frequency of the word appears in the corpus. We decided to do this because the more frequent the word, the more likely the user will want to start to  search with the word.
 
-The second part is n-gram suggestion. In order to reduce the size of the suggestion data structure, we decided not to use suffix trie\cite{intro}. Alternatively, we treat each word as a smallest unit in the data structure, i.e., representing each word with a number. So a sentence will become a short sequence of numbers instead of a long sequence of letters and spaces. These sequence can be put into the suffix tree. But putting all suffix numbers of a sentence is not efficient enough, so instead of putting every suffix, we set a maximum length of the suffix to 3, simply because setting it to 2 wonÕt work well and setting it to 4 is not feasible for us. Finally we reduced the size of the tree by deleteing branches that are not frequent (100 times for single word, 10 tims for bi-gram and 5 times for tri-gram)
+The second part is n-gram suggestion. In order to reduce the size of the suggestion data structure, we decided not to use suffix trie\cite{intro}. Alternatively, we treat each word as a smallest unit in the data structure, i.e., representing each word with a number. So a sentence will become a short sequence of numbers instead of a long sequence of letters and spaces. These sequence can be put into the suffix tree. But putting all suffix numbers of a sentence is not efficient enough, so instead of putting every suffix, we set a maximum length of the suffix to 3, simply because setting it to 2 wonÃ•t work well and setting it to 4 is not feasible for us. Finally we reduced the size of the tree by deleteing branches that are not frequent (100 times for single word, 10 tims for bi-gram and 5 times for tri-gram)
 
 The thrid part is user logged suggestion. It is similiar to the first part except that it stores the all user logged queries into Trie instead of only a single word from the dictionary.
 \subsection{What are the major components of your system?}
+\begin{center}
 \includegraphics[scale=0.5] {WorkFlow.png}
+\end{center}
 \section{Implementation Details}
 \subsection{Details of each individual components, e.g., algorithms, APIs, etc.}
 \begin{enumerate}
@@ -173,7 +175,7 @@ Finally, there is an interesting difference in the suggestions for `michigan'. O
 \begin{thebibliography}{1}
 
 \bibitem{intro} T. H. Cormen, C. E. Leiserson, R. L. Rivest and C. Stein. {\em Introduction to Algorithms, third edition}, June 2007.
-\bibitem{sigir} H. Bast and I. Weber. Type less, find more: fast autocompletion search with a succinct index. In {\em SIGIR}, pages 364-€“371, 2006.
+\bibitem{sigir} H. Bast and I. Weber. Type less, find more: fast autocompletion search with a succinct index. In {\em SIGIR}, pages 364-Â€Â“371, 2006.
 
 \end{thebibliography}
 
