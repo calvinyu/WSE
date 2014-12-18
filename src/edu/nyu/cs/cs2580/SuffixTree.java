@@ -8,9 +8,11 @@ package edu.nyu.cs.cs2580;
 import java.util.*;
 import java.io.*;
 class SuffixTree implements Serializable{
-
+  //if the unigram is less than bigramThreshold, it will be pruned
   private int bigramThreshold = 100;
+  //if the bigram is less than trigramThreshold, it will be pruned
   private int trigramThreshold = 10;
+  //if the trigram is less than leftMinFreq, it will be pruned
   private int leafMinFreq = 5;
   class TreeNode implements Serializable{
     int freq;
@@ -26,15 +28,25 @@ class SuffixTree implements Serializable{
   SuffixTree (){
     root = new TreeNode();
   }
-
+  /**
+   * Overload method for insertion from a list
+   * @param start: start index
+   * @param size: size of ngram
+   */
   public void insert(List<Integer> ngram, int start, int size) {
     insertIntoTree(ngram, start, start+size);
   }
+  /**
+   * Overload method for insertion unigram
+   */
   public void insert(int index){
     if(root.children == null) root.children = new HashMap<Integer, TreeNode>();
     if(!root.children.containsKey(index)) root.children.put(index, new TreeNode());
     root.children.get(index).freq++;
   }
+  /**
+   * Overload method for insertion bigram
+   */
   public void insert(int first, int second){
     TreeNode current = root;
     if(current.children.get(first).freq > bigramThreshold){
@@ -44,6 +56,9 @@ class SuffixTree implements Serializable{
       current.children.get(second).freq++;
     }
   }
+  /**
+   * Overload method for insertion trigram
+   */
   public void insert(int first, int second, int third){
     TreeNode current = root;
     if(current.children.get(first).freq > bigramThreshold){
@@ -57,6 +72,9 @@ class SuffixTree implements Serializable{
     }
   }
 
+  /**
+   * Recursion for ngram insertion
+   */
   protected void insertIntoTree(List<Integer> ngram, int start, int height){
     TreeNode current = root;
     for(int i=start; i<height; ++i){
@@ -73,6 +91,10 @@ class SuffixTree implements Serializable{
       current = current.children.get(index);
     }
   }
+
+  /**
+   * pruning extra branches for memory and time purpose
+   */
   protected void prune(){
     Set<Integer> keySet = root.children.keySet();
     TreeNode current = root;
@@ -100,23 +122,30 @@ class SuffixTree implements Serializable{
       }
     }
   }
-  public List<Pair<List<Integer>, Integer>> query(List<Integer> ngram) {
+  /**
+   * @param query: last two words of a query
+   * @param prefix: prefix of real quey except for last two words
+   * @return list of ngram and frequency pairs
+   */
+  public List<Pair<List<Integer>, Integer>> query(List<Integer> ngram, List<Integer> prefix) {
     List<Pair<List<Integer>, Integer>> result = new LinkedList<Pair<List<Integer>, Integer>>();
     List<Integer> helper = new ArrayList<Integer>();
+    for(int i=0; i<prefix.size(); ++i)
+      helper.add(prefix.get(i));
     System.out.println("Query count:" + ngram.size());
     traverseTree(ngram, result, root, 0, helper);
     System.out.println("Done traversing!");
     System.out.println("Result count: " + result.size());
-    int count = 0;
     System.out.println("First ten results");
     for(Pair<List<Integer>, Integer> pair: result) {
-      if(count++>10) break;
       for(Integer list: pair.first) System.out.printf("%d ", list);
       System.out.println("Freq is " + pair.second);
     }
     return result;
   }
-
+  /**
+   * recursive function for query
+   */
   private void traverseTree(List<Integer> query, List<Pair<List<Integer>, Integer>> result, TreeNode root, 
     int index, List<Integer> helper) {
     if(root == null) return;
@@ -139,7 +168,7 @@ class SuffixTree implements Serializable{
       for(Integer key: keySet){
         helper.add(key);
         traverseTree(query, result, root.children.get(key), index+1, helper);
-        helper.remove(index);
+        helper.remove(helper.size()-1);
       }
     }
   }
@@ -175,7 +204,7 @@ class SuffixTree implements Serializable{
     List<Integer> e = new LinkedList<Integer>();
     e.add(1);
     e.add(4);
-    List<Pair<List<Integer>, Integer>> result = tree.query(e);
+    /*List<Pair<List<Integer>, Integer>> result = tree.query(e);
     for(Pair<List<Integer>, Integer> list: result){
       System.out.println(list.second);
       for(Integer i: list.first){
@@ -183,7 +212,7 @@ class SuffixTree implements Serializable{
       }
       System.out.println();
     }
-
+*/
   }
 
 

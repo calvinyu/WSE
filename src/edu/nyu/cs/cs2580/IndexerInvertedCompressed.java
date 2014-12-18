@@ -48,7 +48,9 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     super(options);
     System.out.println("Using Indexer: " + this.getClass().getSimpleName());
   }
-
+  /*
+   * constructs index and stores this object to corpus.idx
+   */
   @Override
   public void constructIndex(){
     try{
@@ -161,7 +163,8 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       e.printStackTrace();
     }
   }
-  //First run!!
+  
+  // read in a file, preprocess it and update the corpus statistics with this file
   private void processDocument(File file, Vector<Integer> docFrequency, Vector<Integer> termFrequency) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
@@ -170,6 +173,10 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     updateStatistics(content, docFrequency, termFrequency);
   }
 
+  /**
+   * params: content of file, docFrequency and termFrequency
+   * update dictionary and statistical records
+   */
   private void updateStatistics(String content, Vector<Integer> docFrequency, Vector<Integer> termFrequency) {
     HashSet<Integer> uniqueTerms = new HashSet<Integer>();
     //method member for Project
@@ -201,7 +208,10 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       docFrequency.set(i, docFrequency.get(i) + 1);
     }
   }
-  //Second Run!!
+  
+  /**
+   * Scan all files again to build the postings list
+  */
   private void createPostingsList(File file, short[][] docLists, short[][] docTermFrequency, short[][] postingsList)
       throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
@@ -246,7 +256,11 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     }
     if (offset > 32767) System.out.println(docid + " " + offset);
   }
-  //Third run!!
+  
+  /**
+   * @author Joshua
+   * build docBody to do pseudo-relevance feedback
+   */
   private void createDocBody(File file, int cnt) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
@@ -284,6 +298,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     }
   }
 
+  // sorting a hashmap by value
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private HashMap<Integer,Integer> sortByValues(HashMap map) {
     List list = new LinkedList(map.entrySet());
@@ -539,27 +554,32 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     return _dictionaryTrie.query(s);
   }
 
+  /** 
+   * @return list of ngram and frequency pairs
+   */ 
   public List<Pair<List<Integer>, Integer>> getNgramSuggestion(List<String> ngram) {
-    System.out.println("Query from Ranker");
     for(String s: ngram) System.out.println(s);
-    System.out.println("End");
     List<Integer> query = new ArrayList<Integer>();
+    List<Integer> prefix = new ArrayList<Integer>();
+    for(int i=0; i<Math.max(0, ngram.size()-2); ++i)
+      prefix.add(_dictionary.get(ngram.get(i)));
     for(int i=Math.max(0, ngram.size()-2); i < ngram.size(); ++i)
       query.add(_dictionary.get(ngram.get(i)));
-    return _ngramSuffixTree.query(query);
+    return _ngramSuffixTree.query(query, prefix);
   }
-
+  /**
+   * Add user quey to log trie
+   */
   public void insertUserQuery(String s) {
     _logTrie.insert(s);
   }
 
   public List<Pair<String, Integer>> getUserLogSuggestion(String s) {
-    System.out.println("getUserLogSuggestion");
+    /*
     for (Pair<String, Integer> p : _logTrie.query(s)) {
-      System.out.println("elem");
       System.out.println(p.first);
     }
-    System.out.println(_logTrie.query(s));
+    System.out.println(_logTrie.query(s));*/
     return _logTrie.query(s);
   }
 

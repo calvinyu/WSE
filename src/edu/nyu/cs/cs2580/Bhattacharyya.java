@@ -17,6 +17,10 @@ import java.util.Map.Entry;
  *
  */
 public class Bhattacharyya {
+	/**
+	 * read from score files and
+	 * write result of comparisons to file
+	*/
 	public void computeQueries(String prf, String output) throws IOException{
 		File prfFile = new File(prf);
 		File oo = new File(output);
@@ -32,7 +36,7 @@ public class Bhattacharyya {
 		out.flush(); out.close();
 	}
 	
-	// take two hashmaps and return the similarity
+	// take two hashmaps of two words and return the similarity
 	public double compareProb(HashMap<String, Double> h1,
 			HashMap<String, Double> h2) {
 		double score = 0;
