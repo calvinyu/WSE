@@ -163,7 +163,8 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       e.printStackTrace();
     }
   }
-
+  
+  // read in a file, preprocess it and update the corpus statistics with this file
   private void processDocument(File file, Vector<Integer> docFrequency, Vector<Integer> termFrequency) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
@@ -172,6 +173,10 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     updateStatistics(content, docFrequency, termFrequency);
   }
 
+  /**
+   * params: content of file, docFrequency and termFrequency
+   * update dictionary and statistical records
+   */
   private void updateStatistics(String content, Vector<Integer> docFrequency, Vector<Integer> termFrequency) {
     HashSet<Integer> uniqueTerms = new HashSet<Integer>();
     //method member for Project
@@ -203,7 +208,10 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       docFrequency.set(i, docFrequency.get(i) + 1);
     }
   }
-  //Second Run!!
+  
+  /**
+   * Scan all files again to build the postings list
+  */
   private void createPostingsList(File file, short[][] docLists, short[][] docTermFrequency, short[][] postingsList)
       throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
@@ -248,7 +256,11 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     }
     if (offset > 32767) System.out.println(docid + " " + offset);
   }
-
+  
+  /**
+   * @author Joshua
+   * build docBody to do pseudo-relevance feedback
+   */
   private void createDocBody(File file, int cnt) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
@@ -286,6 +298,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     }
   }
 
+  // sorting a hashmap by value
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private HashMap<Integer,Integer> sortByValues(HashMap map) {
     List list = new LinkedList(map.entrySet());

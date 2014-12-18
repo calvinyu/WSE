@@ -46,7 +46,11 @@ public abstract class Ranker {
   }
 
 
-  //Abstract class for Project
+  /**
+   * this function returns an expanded query according to the results of the original query
+   * numDocs : number of top documents to compute in
+   * numTerms : number of top terms to return
+   */
   public abstract String 
   expandQuery(Vector<ScoredDocument> docs, String query, int numDocs, int numTerms);
 
