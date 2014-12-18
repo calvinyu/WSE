@@ -32,6 +32,7 @@ public class RankerFavorite extends Ranker {
     Collections.reverse(retrieval_results);
     Vector<ScoredDocument> tenResult = new Vector<ScoredDocument>();
     List<ScoredDocument> list;
+    // return at most 10 documents
     list = retrieval_results.subList(0, Math.min(10, retrieval_results.size()));
     for(ScoredDocument s : list) tenResult.add(s);
     return tenResult;
@@ -44,6 +45,9 @@ public class RankerFavorite extends Ranker {
     return new ScoredDocument(doc, score);
   }
 
+  /**
+   * @return List that contains ranked unigram suggestions
+   */
   public List<String> suggestUnigram(Query query, int num) {
     List<Pair<String, Integer>> unigramQueries =
         ((IndexerInvertedCompressed) _indexer).getWordSuggestion(query._query);
@@ -61,6 +65,9 @@ public class RankerFavorite extends Ranker {
     return rankedSuggestions;
   }
 
+  /**
+   * @return List that contains ranked n-gram suggestions
+   */
   public List<String> suggestNgrams(Query query, int num) {
     System.out.println(query._query);
     System.out.println(num);
@@ -92,6 +99,9 @@ public class RankerFavorite extends Ranker {
     return rankedSuggestions;
   }
 
+  /**
+   * @return List that contains ranked previously searched user queries
+   */
   public List<String> suggestLoggedQuery(Query query, int num) {
     System.out.println("suggestLoggedQuery");
     List<Pair<String, Integer>> unigramQueries =
