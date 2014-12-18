@@ -62,8 +62,8 @@ class ScoredDocument implements Comparable<ScoredDocument> {
   public String asHtmlResult(String query, boolean expanded) throws IOException {
 	// append title and hyperlink information
     StringBuffer buf = new StringBuffer();
-    String hyperlink1 = "file:///D:/In%20USA/Courses/Web%20Search%20Engines/" + 
-    		"Workspace/SearchEngine" + "/data/wiki/" + _doc.getTitle();
+    String hyperlink1 = "file:///Users/kh21/Documents/Assignment/WebSearchEngine/WSE"
+        + "/data/wiki/" + _doc.getTitle();
     buf.append("<p><a href=" + hyperlink1
           + " target=\"_blank\" style=\"text-decoration: none\">");
     buf.append(_doc.getTitle()).append("</a></p>");
