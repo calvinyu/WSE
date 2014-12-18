@@ -4,7 +4,10 @@ import java.util.*;
 import java.io.*;
 
 class Trie implements Serializable{
-  
+  /**
+   * Trie node that stores lower case english characters
+   * @param freq : the frequcy of the word
+   */
   class TrieNode implements Serializable{
     TrieNode[] children;
     String word;
@@ -21,18 +24,27 @@ class Trie implements Serializable{
     root = new TrieNode();
   }
 
+  /**
+   * insert a word to the trie
+   */
   public void insert(String s) {
     s = s.toLowerCase();
     if(!isValidWord(s)) return;
     insertIntoTrie(s, 0);
   }
-
+  /**
+   * @return: true if all characters are english letters
+   */
   protected boolean isValidWord(String s) {
     for(int i=0; i<s.length(); ++i)
       if(s.charAt(i) < 'a' || s.charAt(i) >'z') return false;
     return true;
   }
 
+  /**
+   * @param s : word to be inserted
+   * @param start: the start index of the word
+   */
   protected void insertIntoTrie(String s, int start){
     TrieNode current = root;
     for(int i=start; i<s.length(); ++i){
@@ -47,7 +59,9 @@ class Trie implements Serializable{
       current = current.children[index];
     }
   }
-
+  /**
+   * @return: List contains word, frequency pairs
+   */
   public List<Pair<String, Integer>> query(String s) {
     System.out.println("In function: " + s);
     s = s.toLowerCase();
@@ -56,6 +70,9 @@ class Trie implements Serializable{
     return result;
   }
 
+  /*
+   * find wrod that the suffix matches s 
+   */
   protected void traverseTrie(String s, List<Pair<String, Integer>> result, TrieNode root, int index) {
     if(root == null) return;
     if(index < s.length()){
@@ -73,6 +90,7 @@ class Trie implements Serializable{
     }
   }
 
+  /* for testing purpose */
   public static void main(String[] args) {
     Trie mytrie = new Trie();
     mytrie.insert("Calvin");

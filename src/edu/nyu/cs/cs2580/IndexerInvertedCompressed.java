@@ -48,7 +48,9 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     super(options);
     System.out.println("Using Indexer: " + this.getClass().getSimpleName());
   }
-
+  /*
+   * constructs index and stores this object to corpus.idx
+   */
   @Override
   public void constructIndex(){
     try{
@@ -161,7 +163,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       e.printStackTrace();
     }
   }
-  //First run!!
+
   private void processDocument(File file, Vector<Integer> docFrequency, Vector<Integer> termFrequency) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
@@ -246,7 +248,7 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     }
     if (offset > 32767) System.out.println(docid + " " + offset);
   }
-  //Third run!!
+
   private void createDocBody(File file, int cnt) throws IOException {
     Document DOM = Jsoup.parse(file, "UTF-8", "");
     String content = DOM.select("#bodyContent").text().toLowerCase();
@@ -539,10 +541,11 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
     return _dictionaryTrie.query(s);
   }
 
+  /** 
+   * @return list of ngram and frequency pairs
+   */ 
   public List<Pair<List<Integer>, Integer>> getNgramSuggestion(List<String> ngram) {
-    System.out.println("Query from Ranker");
     for(String s: ngram) System.out.println(s);
-    System.out.println("End");
     List<Integer> query = new ArrayList<Integer>();
     List<Integer> prefix = new ArrayList<Integer>();
     for(int i=0; i<Math.max(0, ngram.size()-2); ++i)
@@ -551,18 +554,19 @@ public class IndexerInvertedCompressed extends Indexer implements Serializable {
       query.add(_dictionary.get(ngram.get(i)));
     return _ngramSuffixTree.query(query, prefix);
   }
-
+  /**
+   * Add user quey to log trie
+   */
   public void insertUserQuery(String s) {
     _logTrie.insert(s);
   }
 
   public List<Pair<String, Integer>> getUserLogSuggestion(String s) {
-    System.out.println("getUserLogSuggestion");
+    /*
     for (Pair<String, Integer> p : _logTrie.query(s)) {
-      System.out.println("elem");
       System.out.println(p.first);
     }
-    System.out.println(_logTrie.query(s));
+    System.out.println(_logTrie.query(s));*/
     return _logTrie.query(s);
   }
 
