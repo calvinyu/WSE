@@ -56,7 +56,7 @@ class QueryHandler implements HttpHandler {
     
     // The type of suggestions we will be using
     public enum SuggestionType {
-    	NONE,
+    	  NONE,
         TERM,
         PHRASE,
     }
@@ -170,6 +170,13 @@ class QueryHandler implements HttpHandler {
     response.append(response.length() > 0 ? "\n" : "");
   }
   
+  /**
+   * this function forms html response to return to browser requests
+   * docs : ector of Documents returned by ranker
+   * query : pass query in order to use it in Snippet
+   * response : the Buffer we want to write to
+   * expanded : true to suggest that this is an expanded query
+   */
   private void constructHTMLOutput(final Vector<ScoredDocument> docs,
       String query, StringBuffer response, boolean expanded) throws IOException {
       for (ScoredDocument doc : docs) {
@@ -200,6 +207,7 @@ class QueryHandler implements HttpHandler {
       if (uriPath == null || uriQuery == null) {
         respondWithMsg(exchange, "Something wrong with the URI!");
       }
+      // do suggestion if path is suggest
       if (uriPath.equals("/suggest")) {
         CgiArguments cgiArgs = new CgiArguments(uriQuery);
         Ranker ranker = Ranker.Factory.getRankerByArguments(
@@ -226,6 +234,7 @@ class QueryHandler implements HttpHandler {
         }
         respondWithMsg(exchange, result);
       } else if (uriPath.equals("/prf")) {
+        // do pseudo-relevance feedback if path is prf
     	  System.out.println(uriQuery);
         // should write response here
         CgiArguments cgiArgs = new CgiArguments(uriQuery);
@@ -241,6 +250,7 @@ class QueryHandler implements HttpHandler {
             cgiArgs._query, cgiArgs._numDocs, cgiArgs._numTerms);
         respondWithMsg(exchange, result);
       } else {
+        // otherwise do regular search
         System.out.println("Query: " + uriQuery);
 
         // Process the CGI arguments.
@@ -270,9 +280,9 @@ class QueryHandler implements HttpHandler {
             constructTextOutput(scoredDocs, response);
             break;
           case HTML:
+          // if query is a long phrase, do an expansion to get shorter "query" for Snippets
         	if(cgiArgs._query.length() - cgiArgs._query.replace(" ", "").length()>=3){
         	  String q = ranker.expandQuery(scoredDocs, cgiArgs._query, 3, 2);
-        	  System.out.println("goes here and query is " + q);
         	  constructHTMLOutput(scoredDocs, q, response, true);
         	} else constructHTMLOutput(scoredDocs, cgiArgs._query, response, false);
             break;
